@@ -10,7 +10,7 @@ def plot_regret(regret, title=None, label=None):
     plt.title(title)
     plt.show()
 
-    plt.plot(range(len(regret)), regret/np.arange(1, len(regret)+1), label=label)
+    plt.plot(range(len(regret)), regret / np.arange(1, len(regret) + 1), label=label)
     plt.xlabel('Round')
     plt.ylabel('Average Regret')
     plt.title(title)
@@ -28,7 +28,7 @@ def plot_regrets(regrest_list, title=None, label=None):
     plt.show()
 
     for idx, regret in enumerate(regrest_list):
-        plt.plot(range(len(regret)), regret/np.arange(1, len(regret)+1), label=label[idx])
+        plt.plot(range(len(regret)), regret / np.arange(1, len(regret) + 1), label=label[idx])
     plt.xlabel('Round')
     plt.ylabel('Average Regret')
     plt.title(title)
