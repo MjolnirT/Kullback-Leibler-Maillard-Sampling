@@ -1,5 +1,21 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
+
+
+def plot_regret(regret):
+    cum_regret = np.cumsum(np.array(regret))
+    plt.plot(range(len(cum_regret)), cum_regret)
+    plt.xlabel('Round')
+    plt.ylabel('Cumulative regret')
+    plt.title('Bernoulli Thompson Sampling with Jeffreys Prior')
+    plt.show()
+
+    plt.plot(range(len(regret)), regret/np.arange(1, len(regret)+1))
+    plt.xlabel('Round')
+    plt.ylabel('Average Regret')
+    plt.title('Bernoulli Thompson Sampling with Jeffreys Prior')
+    plt.show()
 
 
 class BernoulliTSJeffreysPrior:
@@ -32,7 +48,7 @@ def simulate(reward_probabilities, n_rounds, algorithm):
     n_arms = len(reward_probabilities)
     rewards = []
     selected_arms = []
-    best_reward = max(reward_probabilities) * n_rounds
+    best_reward = []
 
     for t in range(n_rounds):
         chosen_arm = None
@@ -47,6 +63,7 @@ def simulate(reward_probabilities, n_rounds, algorithm):
 
         selected_arms.append(chosen_arm)
         rewards.append(reward)
+        best_reward.append(max(reward_probabilities))
 
     return selected_arms, rewards, best_reward
 
@@ -58,9 +75,11 @@ if __name__ == '__main__':
 
     algorithm = BernoulliTSJeffreysPrior(n_arms)
     selected_arms, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
-    regret = best_reward - sum(rewards)
+    regret = np.array(best_reward) - np.array(rewards)
 
     print(f'Selected arms: {selected_arms}')
     print(f'Rewards: {rewards}')
-    print(f'Total reward: {sum(rewards)}')
     print(f'Regret: {regret}')
+    print(f'Total reward: {sum(rewards)}')
+
+    plot_regret(regret)
