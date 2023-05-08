@@ -31,13 +31,15 @@ def simulate(reward_probabilities, n_rounds, algorithm):
 
 
 if __name__ == '__main__':
-    reward_probabilities = [0.1, 0.2, 0.3, 0.4, 0.9]
-    n_rounds = 10000
+    reward_probabilities = [0.1]*5 + [0.5]*10 + [0.8]*10 + [0.97]*3 +[0.99]
+    print(f'reward_probabilities: {reward_probabilities}')
+    n_rounds = 100000
     n_arms = len(reward_probabilities)
 
     algorithm = BernoulliTSJeffreysPrior(n_arms)
     selected_arms, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
     regret = np.array(best_reward) - np.array(rewards)
+    # print(f'selected_arms: {selected_arms}')
     plot_regret(regret, 'Bernoulli Thompson Sampling with Jeffreys Prior')
 
     # print(f'Selected arms: {selected_arms}')
@@ -49,5 +51,6 @@ if __name__ == '__main__':
     algorithm = KL_MS(n_arms)
     _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
     regret = np.array(best_reward) - np.array(rewards)
+    # print(f'selected_arms: {selected_arms}')
     plot_regret(regret, 'KL-MS')
 

@@ -22,7 +22,7 @@ class KL_MS:
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
 
     def select_arm(self):
-        chosen_arm = np.random.choice(range(self.n_arms), p=self.prob_arm)
+        chosen_arm = int(np.random.choice(range(self.n_arms), p=self.prob_arm))
         return chosen_arm
 
     def update(self, chosen_arm, reward):

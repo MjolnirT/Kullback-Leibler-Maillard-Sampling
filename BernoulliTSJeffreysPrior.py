@@ -16,7 +16,7 @@ class BernoulliTSJeffreysPrior:
 
     def select_arm(self):
         theta_samples = [np.random.beta(self.alpha[i], self.beta[i]) for i in range(self.n_arms)]
-        chosen_arm = np.argmax(theta_samples)
+        chosen_arm = int(np.argmax(theta_samples))
         return chosen_arm
 
     def update(self, chosen_arm, reward):
