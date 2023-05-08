@@ -24,7 +24,8 @@ def simulate(reward_probabilities, n_rounds, algorithm):
 
         selected_arms.append(chosen_arm)
         rewards.append(reward)
-        best_reward.append(max(reward_probabilities))
+        # best_reward.append(max(reward_probabilities))
+        best_reward.append(1 if random.random() < max(reward_probabilities) else 0)
 
     return selected_arms, rewards, best_reward
 
