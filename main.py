@@ -55,5 +55,5 @@ if __name__ == '__main__':
     prob_arm = [f"{num:.4f}" for num in algorithm.prob_arm]
     print(f"Probability of arms: {prob_arm}")
 
-    label = ['Bernoulli Thompson Sampling with Jeffreys Prior', 'Bernoulli TS' ,'KL-MS', 'KL-MS with Jeffreys Prior']
-    plot_regrets([TS_regret, B_TS_regret, MS_regret, MS_Jeff_regret], 'Regret Comparison', label)
+    label = ['Bernoulli TS' ,'KL-MS', 'KL-MS with Jeffreys Prior']
+    plot_regrets([B_TS_regret, MS_regret, MS_Jeff_regret], 'Regret Comparison', label)
