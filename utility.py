@@ -37,6 +37,16 @@ def plot_regrets(regrest_list, title=None, label=None):
     plt.show()
 
 
+def plot_arm_prob(arm_prob_list, title=None, label=None):
+    for idx, arm_prob in enumerate(arm_prob_list):
+        plt.plot(range(len(arm_prob)), arm_prob, label=label[idx])
+    plt.xlabel('arm index')
+    plt.ylabel('Probability of arms')
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
+
 def binomial_KL_divergence(a, b):
     if b == 1:
         b = 1 - np.finfo(float).eps

@@ -27,6 +27,5 @@ class Base:
             print("error", 'sum of reward is ', self.rewards[chosen_arm].sum(), 'N_arms is ', self.N_arms[chosen_arm])
         self.t += 1
 
-    def update_arm_prob(self):
-        return
-
+    def get_arm_prob(self):
+        return self.prob_arm

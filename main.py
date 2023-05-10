@@ -1,5 +1,4 @@
-import numpy as np
-from utility import plot_regrets, message
+from utility import *
 from BernoulliTS import BernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 
@@ -40,21 +39,26 @@ if __name__ == '__main__':
     n_rounds = 1000
     n_arms = len(reward_probabilities)
 
-    message('BernoulliTS', print_flag=print_flag)
-    algorithm = BernoulliTS(n_arms, n_rounds)
-    _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
+    message('Running BernoulliTS', print_flag=print_flag)
+    BernoulliTS = BernoulliTS(n_arms, n_rounds)
+    _, rewards, best_reward = simulate(reward_probabilities, n_rounds, BernoulliTS)
     B_TS_regret = np.array(best_reward) - np.array(rewards)
 
-    message('KL_MS', print_flag=print_flag)
-    algorithm = KLMS(n_arms, explore_weight=1.0, n_rounds=n_rounds)
-    _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
+    message('Running KLMS', print_flag=print_flag)
+    KLMS = KLMS(n_arms, explore_weight=1.0, n_rounds=n_rounds)
+    _, rewards, best_reward = simulate(reward_probabilities, n_rounds, KLMS)
     MS_regret = np.array(best_reward) - np.array(rewards)
-    message(f"Probability of arms: {algorithm.prob_arm}", print_flag=print_flag)
+    message(f"Probability of arms: {KLMS.get_arm_prob()}", print_flag=print_flag)
 
-    message('KL_MS_JeffreysPrior', print_flag=print_flag)
-    algorithm = KLMSJefferysPrior(n_arms, explore_weight=1.0, n_rounds=n_rounds)
-    _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
+    message('Running KLMS with JeffreysPrior', print_flag=print_flag)
+    KLMSJefferysPrior = KLMSJefferysPrior(n_arms, explore_weight=1.0, n_rounds=n_rounds)
+    _, rewards, best_reward = simulate(reward_probabilities, n_rounds, KLMSJefferysPrior)
     MS_Jeff_regret_2 = np.array(best_reward) - np.array(rewards)
+    message(f"Probability of arms: {KLMSJefferysPrior.get_arm_prob()}", print_flag=print_flag)
 
     label = ['Bernoulli TS', 'KLMS', 'KLMS with Jeffreys Prior']
-    plot_regrets([B_TS_regret, MS_regret, MS_Jeff_regret_2], 'Regret Comparison', label)
+    regret_list = [B_TS_regret, MS_regret, MS_Jeff_regret_2]
+    arm_prob_list = [BernoulliTS.get_arm_prob(), KLMS.get_arm_prob(), KLMSJefferysPrior.get_arm_prob()]
+
+    plot_regrets(regret_list, 'Regret Comparison', label)
+    plot_arm_prob(arm_prob_list, 'Arm Probability Comparison', label)
