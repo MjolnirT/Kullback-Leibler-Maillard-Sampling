@@ -1,7 +1,7 @@
 from utility import *
 from BernoulliTS import BernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
-
+from MS import MS, MSPlus
 
 def simulate(reward_probabilities, n_rounds, algorithm):
     n_arms = len(reward_probabilities)
@@ -64,15 +64,20 @@ if __name__ == '__main__':
     # plot_arm_prob(arm_prob_list, 'Arm Probability Comparison', label)
 
     # doing simulation for 100 times
+
     n_simulations = 100
-    algorithms = [BernoulliTS, KLMS, KLMSJefferysPrior]
-    algorithms_name = ['BernoulliTS', 'KLMS', 'KLMSJefferysPrior']
+    algorithms = [(BernoulliTS, [n_arms, n_rounds]),
+                  (KLMS, [n_arms, n_rounds]),
+                  (KLMSJefferysPrior, [n_arms, n_rounds]),
+                  (MS, [n_arms, n_rounds, 1/4]),
+                  (MSPlus, [n_arms, n_rounds, 8, 0.5, 0.5, 1/4])]
+    algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
     avg_reward = np.zeros(shape=[n_simulations, len(algorithms)])
     for i in range(n_simulations):
-        if i%10 == 0:
+        if i % 10 == 0:
             message(f'Simulation {i}', print_flag=print_flag)
-        for alg_idx, algorithm in enumerate(algorithms):
-            model = algorithm(n_arms, n_rounds)
+        for alg_idx, (algorithm, args) in enumerate(algorithms):
+            model = algorithm(*args)
             _, rewards, best_reward = simulate(reward_probabilities, n_rounds, model)
             regret = np.array(best_reward) - np.array(rewards)
             arm_prob = model.get_arm_prob()

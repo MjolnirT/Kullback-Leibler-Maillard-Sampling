@@ -91,6 +91,11 @@ def binomial_KL_divergence(a, b):
     return KL
 
 
+def gaussian_KL_divergence(mu1, sigma1, mu2, sigma2):
+    KL = np.log(sigma2 / sigma1) + (sigma1 ** 2 + (mu1 - mu2) ** 2) / (2 * sigma2 ** 2) - 0.5
+    return KL
+
+
 def message(message, print_flag=False):
     if print_flag:
         print(message)
