@@ -1,8 +1,7 @@
 import numpy as np
-from KL_MS_JeffreysPrior import KL_MS_JeffreysPrior
-from utility import plot_regrets
-from BernoulliTSJeffreysPrior import BernoulliTS
-from KL_MS import KL_MS
+from utility import plot_regrets, message
+from BernoulliTS import BernoulliTS
+from BernoulliKLMS import KLMS, KLMSJefferysPrior
 
 
 def simulate(reward_probabilities, n_rounds, algorithm):
@@ -35,25 +34,27 @@ def simulate(reward_probabilities, n_rounds, algorithm):
 if __name__ == '__main__':
     reward_probabilities = [0.1] * 5 + [0.5] * 10 + [0.8] * 10 + [0.97] * 10 + [0.98] * 5 + [0.999]
     # reward_probabilities = [0.1]*5 + [0.5]*10 + [0.6]
-    print(f'reward_probabilities: {reward_probabilities}')
+
+    print_flag = False
+    message(f'reward_probabilities: {reward_probabilities}', print_flag=True)
     n_rounds = 1000
     n_arms = len(reward_probabilities)
 
+    message('BernoulliTS', print_flag=print_flag)
     algorithm = BernoulliTS(n_arms, n_rounds)
     _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
     B_TS_regret = np.array(best_reward) - np.array(rewards)
 
-    algorithm = KL_MS(n_arms, explore_weight=1.0)
+    message('KL_MS', print_flag=print_flag)
+    algorithm = KLMS(n_arms, explore_weight=1.0, n_rounds=n_rounds)
     _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
     MS_regret = np.array(best_reward) - np.array(rewards)
-    prob_arm = [f"{num:.4f}" for num in algorithm.prob_arm]
-    print(f"Probability of arms: {prob_arm}")
+    message(f"Probability of arms: {algorithm.prob_arm}", print_flag=print_flag)
 
-    algorithm = KL_MS_JeffreysPrior(n_arms, explore_weight=1.0)
+    message('KL_MS_JeffreysPrior', print_flag=print_flag)
+    algorithm = KLMSJefferysPrior(n_arms, explore_weight=1.0, n_rounds=n_rounds)
     _, rewards, best_reward = simulate(reward_probabilities, n_rounds, algorithm)
-    MS_Jeff_regret = np.array(best_reward) - np.array(rewards)
-    prob_arm = [f"{num:.4f}" for num in algorithm.prob_arm]
-    print(f"Probability of arms: {prob_arm}")
+    MS_Jeff_regret_2 = np.array(best_reward) - np.array(rewards)
 
-    label = ['Bernoulli TS' ,'KL-MS', 'KL-MS with Jeffreys Prior']
-    plot_regrets([B_TS_regret, MS_regret, MS_Jeff_regret], 'Regret Comparison', label)
+    label = ['Bernoulli TS', 'KLMS', 'KLMS with Jeffreys Prior']
+    plot_regrets([B_TS_regret, MS_regret, MS_Jeff_regret_2], 'Regret Comparison', label)

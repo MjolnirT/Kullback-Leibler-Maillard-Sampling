@@ -28,7 +28,8 @@ def plot_regrets(regrest_list, title=None, label=None):
     plt.show()
 
     for idx, regret in enumerate(regrest_list):
-        plt.plot(range(len(regret)), regret / np.arange(1, len(regret) + 1), label=label[idx])
+        cum_regret = np.cumsum(np.array(regret))
+        plt.plot(range(len(cum_regret)), cum_regret / np.arange(1, len(cum_regret) + 1), label=label[idx])
     plt.xlabel('Round')
     plt.ylabel('Average Regret')
     plt.title(title)
@@ -45,5 +46,14 @@ def binomial_KL_divergence(a, b):
         a = 1 - np.finfo(float).eps
     if a == 0:
         a = np.finfo(float).eps
+
     KL = a * np.log(a / b) + (1 - a) * np.log((1 - a) / (1 - b))
+    if np.isnan(KL):
+        print('KL is nan', KL)
+        print(f'a: {a}, b: {b}')
     return KL
+
+
+def message(message, print_flag=False):
+    if print_flag:
+        print(message)

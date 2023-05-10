@@ -20,10 +20,13 @@ class Base:
         return
 
     def update(self, chosen_arm, reward):
-        self.rewards[chosen_arm, self.t] = reward
+        self.rewards[chosen_arm, self.N_arms[chosen_arm]] = reward
         self.N_arms[chosen_arm] += 1
-        self.means[chosen_arm] = np.mean(self.rewards[chosen_arm, :self.N_arms[chosen_arm]])
+        self.means[chosen_arm] = self.rewards[chosen_arm].sum() / self.N_arms[chosen_arm]
+        if self.means[chosen_arm] > 1:
+            print("error", 'sum of reward is ', self.rewards[chosen_arm].sum(), 'N_arms is ', self.N_arms[chosen_arm])
         self.t += 1
+
     def update_arm_prob(self):
         return
 
