@@ -17,8 +17,8 @@ def simulate(reward_probabilities, n_rounds, algorithm):
         if t >= n_arms:
             chosen_arm = algorithm.select_arm()
 
-        # receive reward from the chosen arm, use the expected reward as the reward
-        reward = reward_probabilities[chosen_arm]
+        # sample a reward from a Bernoulli distribution
+        reward = np.random.binomial(1, reward_probabilities[chosen_arm])
         algorithm.update(chosen_arm, reward)
 
         # record the results
