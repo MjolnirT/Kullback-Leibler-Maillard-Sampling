@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import gaussian_kde
 
 
 def plot_regret(regret, title=None, label=None):
@@ -44,6 +45,32 @@ def plot_arm_prob(arm_prob_list, title=None, label=None):
     plt.ylabel('Probability of arms')
     plt.title(title)
     plt.legend()
+    plt.show()
+
+
+def plot_density(rewards, title=None, label=None):
+    fig, ax = plt.subplots()
+
+    # Iterate over the columns of the data and plot the density function for each
+    for i in range(rewards.shape[1]):
+        alg_reward = rewards[:, i]
+
+        # Fit a probability distribution to the column data
+        dist = gaussian_kde(alg_reward)
+
+        # Evaluate the PDF at a range of x-values
+        x = np.linspace(alg_reward.min(), alg_reward.max(), 100)
+        y = dist.pdf(x)
+
+        ax.plot(x, y, label=label[i])
+
+    # Add a legend and labels to the plot
+    ax.legend()
+    ax.set_xlabel('Cumulative reward')
+    ax.set_ylabel('Density')
+    ax.set_title(title)
+
+    # Show the plot
     plt.show()
 
 

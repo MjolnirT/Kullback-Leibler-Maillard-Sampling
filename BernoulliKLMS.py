@@ -63,5 +63,4 @@ class KLMSJefferysPrior(Base):
         self.beta = self.prior_beta + self.N_arms - self.rewards.sum(axis=1)
         self.KTEstimator = self.alpha / (self.alpha + self.beta)
         if self.t >= self.n_arms:
-            print('prob_arm', self.prob_arm)
             self.prob_arm = calculate_prob_arms(self.KTEstimator, self.N_arms)
