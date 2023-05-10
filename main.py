@@ -2,32 +2,8 @@ from utility import *
 from BernoulliTS import BernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from MS import MS, MSPlus
-
-def simulate(reward_probabilities, n_rounds, algorithm):
-    n_arms = len(reward_probabilities)
-    rewards = []
-    selected_arms = []
-    best_reward = np.max(reward_probabilities) * np.ones(n_rounds)
-
-    for t in range(n_rounds):
-        chosen_arm = None
-        # In the first n_arms rounds, play each arm once
-        if t < n_arms:
-            chosen_arm = t
-
-        # After the first n_arms rounds, use the algorithm to select an arm
-        if t >= n_arms:
-            chosen_arm = algorithm.select_arm()
-
-        # receive reward from the chosen arm, use the expected reward as the reward
-        reward = reward_probabilities[chosen_arm]
-        algorithm.update(chosen_arm, reward)
-
-        # record the results
-        selected_arms.append(chosen_arm)
-        rewards.append(reward)
-
-    return selected_arms, rewards, best_reward
+from SearchOptConfig import SearchOptConfig
+from simulate import simulate
 
 
 if __name__ == '__main__':
@@ -66,12 +42,16 @@ if __name__ == '__main__':
     # doing simulation for 100 times
 
     n_simulations = 100
+    opt_config = SearchOptConfig(reward_probabilities, n_rounds)
+    variance = 1/4
+
     algorithms = [(BernoulliTS, [n_arms, n_rounds]),
                   (KLMS, [n_arms, n_rounds]),
                   (KLMSJefferysPrior, [n_arms, n_rounds]),
                   (MS, [n_arms, n_rounds, 1/4]),
-                  (MSPlus, [n_arms, n_rounds, 8, 0.5, 0.5, 1/4])]
+                  (MSPlus, [n_arms, n_rounds] + list(opt_config) + [1/4])]
     algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
+
     avg_reward = np.zeros(shape=[n_simulations, len(algorithms)])
     for i in range(n_simulations):
         if i % 10 == 0:
@@ -80,8 +60,8 @@ if __name__ == '__main__':
             model = algorithm(*args)
             _, rewards, best_reward = simulate(reward_probabilities, n_rounds, model)
             regret = np.array(best_reward) - np.array(rewards)
-            arm_prob = model.get_arm_prob()
 
+            arm_prob = model.get_arm_prob()
             avg_reward[i, alg_idx] = np.array(reward_probabilities).dot(arm_prob)
 
     plot_density(avg_reward, 'Average Reward Comparison', label=algorithms_name)
