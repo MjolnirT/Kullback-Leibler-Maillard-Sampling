@@ -65,9 +65,8 @@ if __name__ == '__main__':
     lock = manager.Lock()
 
     # Start the pool with the modified function.
-    with Pool(processes=num_processes) as pool:
-        results = pool.starmap(simulate_single_simulation,
-                               [(i, counter, lock) for i in range(n_simulations)])
+    results = pool.starmap(simulate_single_simulation,
+                           [(i, counter, lock) for i in range(n_simulations)])
 
     print(f"All {n_simulations} simulations completed.")
 
