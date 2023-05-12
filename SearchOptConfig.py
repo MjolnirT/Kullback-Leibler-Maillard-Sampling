@@ -31,5 +31,5 @@ def SearchOptConfig(reward_probabilities, n_rounds):
     return best_config
 
 #
-# reward_probabilities = [0.2] + [0.25]
-# SearchOptConfig(reward_probabilities, 100)
+reward_probabilities = [0.2] + [0.25]
+SearchOptConfig(reward_probabilities, 100)

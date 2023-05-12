@@ -1,8 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import gaussian_kde
+from scipy import stats
 from matplotlib.cm import get_cmap
 
+
+figure_size = (8, 6)
+font_size = 16
 
 def plot_regret(regret, title=None, label=None):
     plt.figure()
@@ -20,8 +24,9 @@ def plot_regret(regret, title=None, label=None):
     plt.show()
 
 
-def plot_regrets(regrets, ci=0.95, y_label=None, title=None, label=None, ref_alg=None):
-    plt.figure()
+def plot_regrets(regrets, ci=0.95, x_label=None, y_label=None, title=None,
+                 label=None, ref_alg=None, add_ci=False, save_path=None):
+    plt.figure(figsize=figure_size)
     n_simulations, num_algorithm, T_timespan = regrets.shape
     average_regret = regrets.mean(axis=0)
 
@@ -36,30 +41,36 @@ def plot_regrets(regrets, ci=0.95, y_label=None, title=None, label=None, ref_alg
     for idx_alg in range(num_algorithm):
         plt.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
 
-        if label[idx_alg] in ref_alg:
-            print("using ", label[idx_alg], " as reference algorithm")
-            plt.fill_between(range(1, T_timespan + 1),
-                             lower_bound[idx_alg, :],
-                             upper_bound[idx_alg, :],
-                             color=cmap(idx_alg),
-                             alpha=0.2)
-            # Add label to the confidence interval
-            plt.text(
-                T_timespan, upper_bound[idx_alg, -1],
-                f'{label[idx_alg]}:{confidence_level}% CI', ha='right', va='bottom',
-                color=cmap(idx_alg), fontsize=8
-            )
+        # Add confidence interval
+        if add_ci is True:
+            if label[idx_alg] in ref_alg:
+                print("using ", label[idx_alg], "as the reference algorithm")
+                plt.fill_between(range(1, T_timespan + 1),
+                                 lower_bound[idx_alg, :],
+                                 upper_bound[idx_alg, :],
+                                 color=cmap(idx_alg),
+                                 alpha=0.2)
+                # Add label to the confidence interval
+                plt.text(
+                    T_timespan, upper_bound[idx_alg, -1],
+                    f'{label[idx_alg]}:{confidence_level}% CI', ha='right', va='bottom',
+                    color=cmap(idx_alg), fontsize=8
+                )
 
-    plt.xlabel('time step')
+    plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
-    plt.legend()
+    plt.legend(fontsize=font_size)
+
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+
     plt.show()
 
 
-def plot_arm_prob(arm_prob_list, title=None, label=None):
+def plot_arm_prob(arm_probs, title=None, label=None):
     plt.figure()
-    for idx, arm_prob in enumerate(arm_prob_list):
+    for idx, arm_prob in enumerate(arm_probs):
         plt.plot(range(len(arm_prob)), arm_prob, label=label[idx])
     plt.xlabel('arm index')
     plt.ylabel('Probability of arms')
@@ -68,8 +79,53 @@ def plot_arm_prob(arm_prob_list, title=None, label=None):
     plt.show()
 
 
+def plot_average_arm_prob_histogram(arm_probs, bin_width=0.2, x_label='Arm Index', y_label='Average Arm Probability',
+                                    label=None, title='Average Arm Probability Histogram', confidence=0.95,
+                                    save_path=None):
+    # Calculate the average arm probability along the simulation axis
+    average_probs = np.mean(arm_probs, axis=0)
+    std_probs = np.std(arm_probs, axis=0)
+
+    # Get the number of arms and models
+    num_arms = average_probs.shape[1]
+    num_models = average_probs.shape[0]
+
+    # Plotting the histograms
+    plt.figure()
+
+    # Iterate over each model
+    for model in range(num_models):
+        # Get the average probabilities and standard deviations for the current model
+        model_avg_probs = average_probs[model, :]
+        model_std_probs = std_probs[model, :]
+
+        # Calculate the confidence interval for each bin
+        conf_interval = stats.t.interval(confidence, df=arm_probs.shape[0]-1, loc=model_avg_probs, scale=model_std_probs / np.sqrt(arm_probs.shape[0]))
+
+        # Calculate the center of each bin for the current model
+        bin_centers = np.arange(num_arms) + (model - (num_models - 1) / 2) * bin_width
+
+        # Plot the histogram with error bars for the current model
+        plt.bar(bin_centers, model_avg_probs, width=bin_width, alpha=0.7,
+                label=f'{label[model]}' if label else f'Model {model + 1}')
+
+        # Add error bars representing the confidence interval
+        plt.errorbar(bin_centers, model_avg_probs, yerr=np.abs(conf_interval - model_avg_probs), fmt='none', color='black')
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.xticks(np.arange(num_arms), np.arange(1, num_arms + 1))  # Set integer indices on x-axis
+    plt.legend()
+
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+
+    plt.show()
+
+
 def plot_density(rewards, title=None, label=None):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=figure_size)
 
     n_simulations, num_algorithm = rewards.shape
 
@@ -87,7 +143,7 @@ def plot_density(rewards, title=None, label=None):
         ax.plot(x, y, label=label[idx_alg])
 
     # Add a legend and labels to the plot
-    ax.legend()
+    ax.legend(fontsize=font_size)
     ax.set_xlabel('Evaluation reward')
     ax.set_ylabel('Frequency')
     ax.set_title(title)
