@@ -12,7 +12,7 @@ reward_probabilities = [0.2] + [0.25]
 
 # to pick the best configuration for MS+, doing a grid search from 100 simulations
 # opt_config = SearchOptConfig(reward_probabilities, 100)
-opt_config = [2.71828183, 0.01831564, 0.36787944]
+opt_config = [2.71828183e+00, 4.53999298e-05, 3.67879441e-01]
 
 # set algorithms and their parameters
 variance = 1 / 4
@@ -147,3 +147,15 @@ if __name__ == '__main__':
                                     bin_width=0.1,
                                     label=algorithms_name,
                                     save_path='./figures/arm_prob_hist.png')
+
+    # plot the optimal arm probability
+    arm_best = arm_probs[:, :, :, -1]
+    plot_regrets(arm_best,
+                 ci=0.95,
+                 x_label='time step',
+                 y_label='probability of the best arm',
+                 title='Probability of the Best Arm Comparison',
+                 label=algorithms_name,
+                 ref_alg="BernoulliTS",
+                 add_ci=False,
+                 save_path='./figures/arm_best.png')
