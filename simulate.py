@@ -6,6 +6,7 @@ def simulate(reward_probabilities, n_rounds, algorithm):
     rewards = []
     selected_arms = []
     best_reward = np.max(reward_probabilities) * np.ones(n_rounds)
+    arm_probs = np.zeros(shape=[n_rounds, n_arms])
 
     for t in range(n_rounds):
         chosen_arm = None
@@ -25,4 +26,7 @@ def simulate(reward_probabilities, n_rounds, algorithm):
         selected_arms.append(chosen_arm)
         rewards.append(reward)
 
-    return selected_arms, rewards, best_reward
+        # record the probability of each arm
+        arm_probs[t] = algorithm.get_arm_prob()
+
+    return selected_arms, rewards, best_reward, arm_probs
