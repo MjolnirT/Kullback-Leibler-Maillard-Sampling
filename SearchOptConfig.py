@@ -14,8 +14,8 @@ def SearchOptConfig(reward_probabilities, n_rounds):
     best_regret = n_rounds * (max(reward_probabilities) - min(reward_probabilities))
     best_config = None
     for idx, config in enumerate(configs):
-        if idx % 100 == 0:
-            print(f'idx: {idx} / {len(configs)}')
+        # if idx % 100 == 0:
+        #     print(f'idx: {idx} / {len(configs)}')
 
         model = MSPlus(n_arms, n_rounds, *config, 1/4)
         _, rewards, best_reward = simulate(reward_probabilities, n_rounds, model)
@@ -25,8 +25,8 @@ def SearchOptConfig(reward_probabilities, n_rounds):
             best_regret = regret[-1]
             best_config = config
 
-    print(f'best regret: {best_regret}')
-    print(f'best config: {best_config}')
+    # print(f'best regret: {best_regret}')
+    # print(f'best config: {best_config}')
 
     return best_config
 
