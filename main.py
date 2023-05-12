@@ -2,7 +2,6 @@ from utility import *
 from BernoulliTS import BernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from MS import MS, MSPlus
-from SearchOptConfig import SearchOptConfig
 from simulate import simulate
 from multiprocessing import Pool, cpu_count, Manager
 import pickle
