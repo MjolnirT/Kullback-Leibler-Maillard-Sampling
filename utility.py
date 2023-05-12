@@ -5,6 +5,7 @@ from matplotlib.cm import get_cmap
 
 
 def plot_regret(regret, title=None, label=None):
+    plt.figure()
     cum_regret = np.cumsum(np.array(regret))
     plt.plot(range(len(cum_regret)), cum_regret, label=label)
     plt.xlabel('Round')
@@ -20,6 +21,7 @@ def plot_regret(regret, title=None, label=None):
 
 
 def plot_regrets(regrets, ci=0.95, y_label=None, title=None, label=None, ref_alg=None):
+    plt.figure()
     n_simulations, num_algorithm, T_timespan = regrets.shape
     average_regret = regrets.mean(axis=0)
 
@@ -35,6 +37,7 @@ def plot_regrets(regrets, ci=0.95, y_label=None, title=None, label=None, ref_alg
         plt.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
 
         if label[idx_alg] in ref_alg:
+            print("using ", label[idx_alg], " as reference algorithm")
             plt.fill_between(range(1, T_timespan + 1),
                              lower_bound[idx_alg, :],
                              upper_bound[idx_alg, :],
@@ -55,6 +58,7 @@ def plot_regrets(regrets, ci=0.95, y_label=None, title=None, label=None, ref_alg
 
 
 def plot_arm_prob(arm_prob_list, title=None, label=None):
+    plt.figure()
     for idx, arm_prob in enumerate(arm_prob_list):
         plt.plot(range(len(arm_prob)), arm_prob, label=label[idx])
     plt.xlabel('arm index')

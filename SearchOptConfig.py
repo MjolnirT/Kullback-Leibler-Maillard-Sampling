@@ -25,11 +25,11 @@ def SearchOptConfig(reward_probabilities, n_rounds):
             best_regret = regret[-1]
             best_config = config
 
-    # print(f'best regret: {best_regret}')
-    # print(f'best config: {best_config}')
+    print(f'best regret: {best_regret}')
+    print(f'best config: {best_config}')
 
     return best_config
 
-
-reward_probabilities = [0.1] * 5 + [0.5] * 10 + [0.8] * 10 + [0.97] * 10 + [0.98] * 5 + [0.999]
-SearchOptConfig(reward_probabilities, 100)
+#
+# reward_probabilities = [0.2] + [0.25]
+# SearchOptConfig(reward_probabilities, 100)
