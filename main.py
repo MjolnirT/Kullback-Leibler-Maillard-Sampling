@@ -17,9 +17,9 @@ opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.2
 
 # set algorithms and their parameters
 variance = 1 / 4
-T_timespan = 1000
+T_timespan = 100
 n_arms = len(reward_probabilities)
-n_simulations = 200
+n_simulations = 2000
 algorithms = [(BernoulliTS, [n_arms, T_timespan]),
               (KLMS, [n_arms, T_timespan]),
               (KLMSJefferysPrior, [n_arms, T_timespan]),
@@ -29,27 +29,29 @@ algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
 
 
 def simulate_single_simulation(simulation_idx, counter, lock):
-    regrets = np.zeros(shape=[len(algorithms), T_timespan])
-    arm_probs = np.zeros(shape=[len(algorithms), T_timespan, n_arms])
-    evl_rewards = np.zeros(shape=[len(algorithms)])
+    selected_arm_all = np.zeros(shape=[len(algorithms), T_timespan])
+    regrets_all = np.zeros(shape=[len(algorithms), T_timespan])
+    arm_probs_all = np.zeros(shape=[len(algorithms), T_timespan, n_arms])
+    evl_rewards_all = np.zeros(shape=[len(algorithms)])
 
     for alg_idx, (algorithm, args) in enumerate(algorithms):
         model = algorithm(*args)
-        _, rewards, best_reward, arm_prob = simulate(reward_probabilities,
+        selected_arms, rewards, best_reward, arm_prob = simulate(reward_probabilities,
                                                      T_timespan,
                                                      model,
                                                      output_all_arm_prob=True)
 
-        regrets[alg_idx] = np.array(best_reward) - np.array(rewards)
-        arm_probs[alg_idx] = arm_prob
-        evl_rewards[alg_idx] = np.array(reward_probabilities).dot(arm_probs[alg_idx, -1, :])
+        selected_arm_all[alg_idx] = selected_arms
+        regrets_all[alg_idx] = np.array(best_reward) - np.array(rewards)
+        arm_probs_all[alg_idx] = arm_prob
+        evl_rewards_all[alg_idx] = np.array(reward_probabilities).dot(arm_probs_all[alg_idx, -1, :])
 
     # After the simulation is done, increment the counter.
     with lock:
         counter.value += 1
         print(f"Job {simulation_idx} done, {counter.value}/{n_simulations} completed.")
 
-    return regrets, evl_rewards, arm_probs
+    return selected_arm_all, regrets_all, arm_probs_all, evl_rewards_all
 
 
 if __name__ == '__main__':
@@ -82,11 +84,12 @@ if __name__ == '__main__':
     with open('simulation.pkl', 'rb') as file:
         results = pickle.load(file)
 
-    evl_rewards = np.zeros(shape=[n_simulations, len(algorithms)])
+    select_arms = np.zeros(shape=[n_simulations, len(algorithms), T_timespan])
     regrets = np.zeros(shape=[n_simulations, len(algorithms), T_timespan])
     arm_probs = np.zeros(shape=[n_simulations, len(algorithms), T_timespan, n_arms])
+    evl_rewards = np.zeros(shape=[n_simulations, len(algorithms)])
     for i, result in enumerate(results):
-        regrets[i], evl_rewards[i], arm_probs[i] = result
+        select_arms[i], regrets[i], arm_probs[i], evl_rewards[i] = result
 
     plot_density(evl_rewards, 'Evaluation Reward Comparison', label=algorithms_name)
 
