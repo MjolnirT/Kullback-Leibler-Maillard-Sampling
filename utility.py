@@ -163,14 +163,11 @@ def binomial_KL_divergence(a, b):
         a = np.finfo(float).eps
 
     KL = a * np.log(a / b) + (1 - a) * np.log((1 - a) / (1 - b))
-    if np.isnan(KL):
-        print('KL is nan', KL)
-        print(f'a: {a}, b: {b}')
     return KL
 
 
-def gaussian_KL_divergence(mu1, sigma1, mu2, sigma2):
-    KL = np.log(sigma2 / sigma1) + (sigma1 ** 2 + (mu1 - mu2) ** 2) / (2 * sigma2 ** 2) - 0.5
+def gaussian_KL_divergence(mu1, var1, mu2, var2):
+    KL = np.log(np.sqrt(var2) / np.sqrt(var1)) + (var1 + (mu1 - mu2) ** 2) / (2 * var2) - 0.5
     return KL
 
 

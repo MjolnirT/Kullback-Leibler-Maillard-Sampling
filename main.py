@@ -16,15 +16,15 @@ opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.2
 # opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
 
 # set algorithms and their parameters
-variance = 1 / 4
-T_timespan = 100
+variance = float(1 / 4)
+T_timespan = 1000
 n_arms = len(reward_probabilities)
-n_simulations = 2000
+n_simulations = 200
 algorithms = [(BernoulliTS, [n_arms, T_timespan]),
               (KLMS, [n_arms, T_timespan]),
               (KLMSJefferysPrior, [n_arms, T_timespan]),
-              (MS, [n_arms, T_timespan, 1 / 4]),
-              (MSPlus, [n_arms, T_timespan] + opt_config + [1 / 4])]
+              (MS, [n_arms, T_timespan, variance]),
+              (MSPlus, [n_arms] + [T_timespan] + opt_config + [variance])]
 algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
 
 
@@ -36,6 +36,7 @@ def simulate_single_simulation(simulation_idx, counter, lock):
 
     for alg_idx, (algorithm, args) in enumerate(algorithms):
         model = algorithm(*args)
+        model.set_name(algorithms_name[alg_idx])
         selected_arms, rewards, best_reward, arm_prob = simulate(reward_probabilities,
                                                      T_timespan,
                                                      model,
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     for i, result in enumerate(results):
         select_arms[i], regrets[i], arm_probs[i], evl_rewards[i] = result
 
-    plot_density(evl_rewards, 'Evaluation Reward Comparison', label=algorithms_name)
+    # plot_density(evl_rewards, 'Evaluation Reward Comparison', label=algorithms_name)
 
     # parameters for plotting
     ref_alg = "BernoulliTS"

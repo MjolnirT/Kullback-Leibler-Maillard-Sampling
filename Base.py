@@ -16,6 +16,8 @@ class Base:
         # initialize the probability of each arm as the uniform distribution
         self.prob_arm = None
 
+        self.name = None
+
     def select_arm(self):
         return
 
@@ -32,3 +34,9 @@ class Base:
 
     def set_arm_prob(self, prob_arm):
         self.prob_arm = prob_arm
+
+    def get_name(self):
+        return self.name
+
+    def set_name(self, name):
+        self.name = name
