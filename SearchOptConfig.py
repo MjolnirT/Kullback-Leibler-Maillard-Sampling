@@ -1,6 +1,6 @@
 import numpy as np
 from MS import MSPlus
-from simulate import simulate
+from simulate import simulate_one_alg
 
 
 def SearchOptConfig(reward_probabilities, n_rounds):
@@ -18,7 +18,7 @@ def SearchOptConfig(reward_probabilities, n_rounds):
         #     print(f'idx: {idx} / {len(configs)}')
 
         model = MSPlus(n_arms, n_rounds, *config, 1 / 4)
-        _, rewards, best_reward, _ = simulate(reward_probabilities, n_rounds, model)
+        _, rewards, best_reward, _ = simulate_one_alg(reward_probabilities, n_rounds, model)
         regret = np.array(best_reward) - np.array(rewards)
 
         if regret[-1] < best_regret:

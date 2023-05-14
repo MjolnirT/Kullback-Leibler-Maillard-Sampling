@@ -2,62 +2,35 @@ from utility import *
 from BernoulliTS import BernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from MS import MS, MSPlus
-from simulate import simulate
+from simulate import simulate_single_simulation
 from multiprocessing import Pool, cpu_count, Manager
 import pickle
-
-print_flag = True
-reward_probabilities = [0.2] + [0.25]
-# reward_probabilities = [0.8] + [0.9]
-
-# to pick the best configuration for MS+, doing a grid search from 100 simulations
-# opt_config = SearchOptConfig(reward_probabilities, 100)
-opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
-# opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
-
-# set algorithms and their parameters
-variance = float(1 / 4)
-T_timespan = 1000
-n_arms = len(reward_probabilities)
-n_simulations = 200
-algorithms = [(BernoulliTS, [n_arms, T_timespan]),
-              (KLMS, [n_arms, T_timespan]),
-              (KLMSJefferysPrior, [n_arms, T_timespan]),
-              (MS, [n_arms, T_timespan, variance]),
-              (MSPlus, [n_arms] + [T_timespan] + opt_config + [variance])]
-algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
-
-
-def simulate_single_simulation(simulation_idx, counter, lock):
-    selected_arm_all = np.zeros(shape=[len(algorithms), T_timespan])
-    regrets_all = np.zeros(shape=[len(algorithms), T_timespan])
-    arm_probs_all = np.zeros(shape=[len(algorithms), T_timespan, n_arms])
-    evl_rewards_all = np.zeros(shape=[len(algorithms)])
-
-    for alg_idx, (algorithm, args) in enumerate(algorithms):
-        model = algorithm(*args)
-        model.set_name(algorithms_name[alg_idx])
-        selected_arms, rewards, best_reward, arm_prob = simulate(reward_probabilities,
-                                                     T_timespan,
-                                                     model,
-                                                     output_all_arm_prob=True)
-
-        selected_arm_all[alg_idx] = selected_arms
-        regrets_all[alg_idx] = np.array(best_reward) - np.array(rewards)
-        arm_probs_all[alg_idx] = arm_prob
-        evl_rewards_all[alg_idx] = np.array(reward_probabilities).dot(arm_probs_all[alg_idx, -1, :])
-
-    # After the simulation is done, increment the counter.
-    with lock:
-        counter.value += 1
-        print(f"Job {simulation_idx} done, {counter.value}/{n_simulations} completed.")
-
-    return selected_arm_all, regrets_all, arm_probs_all, evl_rewards_all
 
 
 if __name__ == '__main__':
 
+    print_flag = True
+    reward_probabilities = [0.2] + [0.25]
+    # reward_probabilities = [0.8] + [0.9]
+
     message(f'reward_probabilities: {reward_probabilities}', print_flag=True)
+
+    # to pick the best configuration for MS+, doing a grid search from 100 simulations
+    # opt_config = SearchOptConfig(reward_probabilities, 100)
+    opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
+    # opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
+
+    # set algorithms and their parameters
+    variance = float(1 / 4)
+    T_timespan = 100
+    n_arms = len(reward_probabilities)
+    n_simulations = 20
+    algorithms = [(BernoulliTS, [n_arms, T_timespan]),
+                  (KLMS, [n_arms, T_timespan]),
+                  (KLMSJefferysPrior, [n_arms, T_timespan]),
+                  (MS, [n_arms, T_timespan, variance]),
+                  (MSPlus, [n_arms] + [T_timespan] + opt_config + [variance])]
+    algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
 
     # parallel simulation process
     # Use a maximum of 16 processes or the available CPU threads, whichever is smaller
@@ -71,7 +44,7 @@ if __name__ == '__main__':
 
     # Start the pool with the modified function.
     results = pool.starmap(simulate_single_simulation,
-                           [(i, counter, lock) for i in range(n_simulations)])
+                           [(i, counter, lock, algorithms, algorithms_name, T_timespan, n_simulations, n_arms, reward_probabilities) for i in range(n_simulations)])
 
     print(f"All {n_simulations} simulations completed.")
 

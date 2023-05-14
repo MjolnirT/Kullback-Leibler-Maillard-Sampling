@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def simulate(reward_probabilities, n_rounds, algorithm, output_all_arm_prob=False):
+def simulate_one_alg(reward_probabilities, n_rounds, algorithm, output_all_arm_prob=False):
     n_arms = len(reward_probabilities)
     rewards = []
     selected_arms = []
@@ -44,3 +44,30 @@ def simulate(reward_probabilities, n_rounds, algorithm, output_all_arm_prob=Fals
     arm_probs[-1] = algorithm.get_arm_prob()
 
     return selected_arms, rewards, best_reward, arm_probs
+
+
+def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, T_timespan, n_simulations, n_arms, reward_probabilities):
+    selected_arm_all = np.zeros(shape=[len(algorithms), T_timespan])
+    regrets_all = np.zeros(shape=[len(algorithms), T_timespan])
+    arm_probs_all = np.zeros(shape=[len(algorithms), T_timespan, n_arms])
+    expected_rewards_all = np.zeros(shape=[len(algorithms)])
+
+    for alg_idx, (algorithm, args) in enumerate(algorithms):
+        model = algorithm(*args)
+        model.set_name(algorithms_name[alg_idx])
+        selected_arms, rewards, best_reward, arm_prob = simulate_one_alg(reward_probabilities,
+                                                                         T_timespan,
+                                                                         model,
+                                                                         output_all_arm_prob=True)
+
+        selected_arm_all[alg_idx] = selected_arms
+        regrets_all[alg_idx] = np.array(best_reward) - np.array(rewards)
+        arm_probs_all[alg_idx] = arm_prob
+        expected_rewards_all[alg_idx] = np.array(reward_probabilities).dot(arm_probs_all[alg_idx, -1, :])
+
+    # After the simulation is done, increment the counter.
+    with lock:
+        counter.value += 1
+        print(f"Job {simulation_idx} done, {counter.value}/{n_simulations} completed.")
+
+    return selected_arm_all, regrets_all, arm_probs_all, expected_rewards_all
