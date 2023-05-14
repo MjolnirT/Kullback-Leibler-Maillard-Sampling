@@ -79,8 +79,8 @@ def plot_arm_prob(arm_probs, title=None, label=None):
     plt.show()
 
 
-def plot_average_arm_prob_histogram(arm_probs, bin_width=0.2, x_label='Arm Index', y_label='Average Arm Probability',
-                                    label=None, title='Average Arm Probability Histogram', confidence=0.95,
+def plot_average_arm_prob_histogram(arm_probs, bin_width=0.2, x_label=None, y_label=None,
+                                    label=None, title=None, confidence=0.95,
                                     save_path=None):
     # Calculate the average arm probability along the simulation axis
     average_probs = np.mean(arm_probs, axis=0)

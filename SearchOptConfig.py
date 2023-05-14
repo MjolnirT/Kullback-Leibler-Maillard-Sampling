@@ -17,7 +17,7 @@ def SearchOptConfig(reward_probabilities, n_rounds):
         # if idx % 100 == 0:
         #     print(f'idx: {idx} / {len(configs)}')
 
-        model = MSPlus(n_arms, n_rounds, *config, 1/4)
+        model = MSPlus(n_arms, n_rounds, *config, 1 / 4)
         _, rewards, best_reward, _ = simulate(reward_probabilities, n_rounds, model)
         regret = np.array(best_reward) - np.array(rewards)
 
@@ -30,6 +30,8 @@ def SearchOptConfig(reward_probabilities, n_rounds):
 
     return best_config
 
+
 #
 reward_probabilities = [0.2] + [0.25]
+# reward_probabilities = [0.8] + [0.9]
 SearchOptConfig(reward_probabilities, 100)
