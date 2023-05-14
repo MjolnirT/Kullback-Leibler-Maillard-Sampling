@@ -29,3 +29,6 @@ class Base:
 
     def get_arm_prob(self):
         return self.prob_arm
+
+    def set_arm_prob(self, prob_arm):
+        self.prob_arm = prob_arm
