@@ -1,11 +1,10 @@
 import numpy as np
 
 
-def simulate_one_alg(reward_probabilities, n_rounds, algorithm, output_all_arm_prob=False):
-    n_arms = len(reward_probabilities)
+def simulate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
     rewards = []
     selected_arms = []
-    best_reward = np.max(reward_probabilities) * np.ones(n_rounds)
+    best_reward = np.max(env_reward) * np.ones(n_rounds)
     arm_probs = np.zeros(shape=[n_rounds, n_arms])
 
     for t in range(n_rounds):
@@ -18,14 +17,14 @@ def simulate_one_alg(reward_probabilities, n_rounds, algorithm, output_all_arm_p
         if t >= n_arms:
             chosen_arm = algorithm.select_arm()
 
-        # sample a reward from a Bernoulli distribution
-        # reward = np.random.binomial(1, reward_probabilities[chosen_arm])
-        reward = reward_probabilities[chosen_arm]
-        algorithm.update(chosen_arm, reward)
+        # sample a return_reward from a Bernoulli distribution
+        # return_reward = np.random.binomial(1, reward_probabilities[chosen_arm])
+        return_reward = env_reward[chosen_arm]
+        algorithm.update(chosen_arm, return_reward)
 
         # record the results
         selected_arms.append(chosen_arm)
-        rewards.append(reward)
+        rewards.append(return_reward)
 
         # record the probability of each arm
         if output_all_arm_prob:
@@ -36,7 +35,7 @@ def simulate_one_alg(reward_probabilities, n_rounds, algorithm, output_all_arm_p
     return selected_arms, rewards, best_reward, arm_probs
 
 
-def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, n_simulations, reward_probabilities):
+def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, n_simulations, env_reward):
     first_alg_key = list(algorithms.keys())[0]
     T_timespan = algorithms[first_alg_key]['params']['n_rounds']
     n_arms = algorithms[first_alg_key]['params']['n_arms']
@@ -50,7 +49,8 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
         # model = algorithm(*args)
         model = algorithms[algorithm]['model'](**algorithms[algorithm]['params'])
         model.set_name(algorithms_name[alg_idx])
-        selected_arms, rewards, best_reward, arm_prob = simulate_one_alg(reward_probabilities,
+        selected_arms, rewards, best_reward, arm_prob = simulate_one_alg(env_reward,
+                                                                         n_arms,
                                                                          T_timespan,
                                                                          model,
                                                                          output_all_arm_prob=True)
@@ -58,7 +58,7 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
         selected_arm_all[alg_idx] = selected_arms
         regrets_all[alg_idx] = np.array(best_reward) - np.array(rewards)
         arm_probs_all[alg_idx] = arm_prob
-        expected_rewards_all[alg_idx] = np.array(reward_probabilities).dot(arm_probs_all[alg_idx, -1, :])
+        expected_rewards_all[alg_idx] = np.array(env_reward).dot(arm_probs_all[alg_idx, -1, :])
 
     # After the simulation is done, increment the counter.
     with lock:

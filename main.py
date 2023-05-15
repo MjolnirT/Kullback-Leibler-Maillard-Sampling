@@ -2,14 +2,14 @@ from utility import *
 from BernoulliTS import BernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from MS import MS, MSPlus
-from simulate import simulate_single_simulation
+from simulation import simulate_single_simulation
 from multiprocessing import Pool, cpu_count, Manager
 import pickle
 
 if __name__ == '__main__':
 
     print_flag = True
-    reward_probabilities = [0.2] + [0.25]
+    env_reward = [0.2] + [0.25]
 
     opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
 
@@ -19,12 +19,12 @@ if __name__ == '__main__':
     # to pick the best configuration for MS+, doing a grid search from 100 simulations
     # opt_config = SearchOptConfig(reward_probabilities, 100)
 
-    message(f'reward_probabilities: {reward_probabilities}', print_flag=True)
+    message(f'reward_probabilities: {env_reward}', print_flag=True)
 
     # set algorithms and their parameters
     variance = float(1 / 4)
     T_timespan = 1000
-    n_arms = len(reward_probabilities)
+    n_arms = 2
     n_simulations = 100
 
     algorithms = {'BernoulliTS':
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     # Start the pool with the modified function.
     results = pool.starmap(simulate_single_simulation,
-                           [(i, counter, lock, algorithms, algorithms_name, n_simulations, reward_probabilities) for i
+                           [(i, counter, lock, algorithms, algorithms_name, n_simulations, env_reward) for i
                             in range(n_simulations)])
 
     print(f"All {n_simulations} simulations completed.")
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     # parameters for plotting
     ref_alg = "BernoulliTS"
-    experiment_param = ' | mu=' + str(reward_probabilities) + ' | simulations=' + str(n_simulations)
+    experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
 
     # plot cumulative regret vs time step
     cum_regrets = np.cumsum(regrets, axis=2)
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                  ci=0.95,
                  x_label='time step',
                  y_label='cumulative regret' + experiment_param,
-                 title='Cumulative Regret Comparison' + 'mu=' + str(reward_probabilities),
+                 title='Cumulative Regret Comparison' + 'mu=' + str(env_reward),
                  label=algorithms_name,
                  ref_alg=ref_alg,
                  add_ci=True,

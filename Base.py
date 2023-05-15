@@ -40,3 +40,12 @@ class Base:
 
     def set_name(self, name):
         self.name = name
+
+
+class Uniform(Base):
+    def __init__(self, n_arms, n_rounds, explore_weight=1):
+        super().__init__(n_arms, n_rounds, explore_weight)
+        self.name = 'Uniform'
+
+    def select_arm(self):
+        return np.random.randint(0, self.n_arms)

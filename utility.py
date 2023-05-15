@@ -6,7 +6,8 @@ from matplotlib.cm import get_cmap
 
 
 figure_size = (8, 6)
-font_size = 16
+font_size = 8
+
 
 def plot_regret(regret, title=None, label=None):
     plt.figure()
@@ -124,8 +125,8 @@ def plot_average_arm_prob_histogram(arm_probs, bin_width=0.2, x_label=None, y_la
     plt.show()
 
 
-def plot_density(rewards, title=None, label=None):
-    fig, ax = plt.subplots(figsize=figure_size)
+def plot_density(rewards, title=None, label=None, x_label=None, y_label=None, save_path=None):
+    fig= plt.figure(figsize=figure_size)
 
     n_simulations, num_algorithm = rewards.shape
 
@@ -140,14 +141,56 @@ def plot_density(rewards, title=None, label=None):
         x = np.linspace(alg_reward.min(), alg_reward.max(), 100)
         y = dist.pdf(x)
 
-        ax.plot(x, y, label=label[idx_alg])
+        plt.plot(x, y, label=label[idx_alg])
 
     # Add a legend and labels to the plot
-    ax.legend(fontsize=font_size)
-    ax.set_xlabel('Evaluation reward')
-    ax.set_ylabel('Frequency')
-    ax.set_title(title)
+    plt.legend(fontsize=font_size)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
 
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+    # Show the plot
+    plt.show()
+
+
+def plot_hist(data, title=None, label=None, x_label=None, y_label=None, save_path=None, add_density=False, oracle=None):
+    fig= plt.figure(figsize=figure_size)
+
+    n_simulations, num_algorithm = data.shape
+
+    # Get a colormap with the number of algorithms
+    cmap = get_cmap('tab10', num_algorithm)
+
+    # Iterate over the columns of the data and plot the density function for each
+    for idx_alg in range(num_algorithm):
+        plt.hist(data[:, idx_alg], bins=20, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
+        if oracle is not None:
+            plt.axvline(x=oracle[idx_alg], color=cmap(idx_alg), linestyle='--', label='Oracle:'+label[idx_alg])
+
+    if add_density:
+        # Iterate over the columns of the data and plot the density function for each
+        for idx_alg in range(num_algorithm):
+            alg_reward = data[:, idx_alg]
+
+            # Fit a probability distribution to the column data
+            dist = gaussian_kde(alg_reward)
+
+            # Evaluate the PDF at a range of x-values
+            x = np.linspace(alg_reward.min(), alg_reward.max(), 100)
+            y = dist.pdf(x)
+
+            plt.plot(x, y, color=cmap(idx_alg), label=label[idx_alg])
+
+    # Add a legend and labels to the plot
+    plt.legend(fontsize=font_size)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
     # Show the plot
     plt.show()
 
