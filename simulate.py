@@ -17,21 +17,11 @@ def simulate_one_alg(reward_probabilities, n_rounds, algorithm, output_all_arm_p
         # After the first n_arms rounds, use the algorithm to select an arm
         if t >= n_arms:
             chosen_arm = algorithm.select_arm()
-        # # EXPERIMENT 2: Mannually set the probability of each arm
-        # if t >= n_arms:
-        #     chosen_arm = 0
 
         # sample a reward from a Bernoulli distribution
         # reward = np.random.binomial(1, reward_probabilities[chosen_arm])
         reward = reward_probabilities[chosen_arm]
         algorithm.update(chosen_arm, reward)
-
-        # EXPERIMENT 1: After the first n round,
-        # assign the probability of the optimal arm with 0.9 and the rest with 0.1
-        # if t == n_arms:
-        #     arm_probs[t] = np.array([0.1] * n_arms)
-        #     arm_probs[t, np.argmax(reward_probabilities)] = 0.9
-        #     algorithm.set_arm_prob(arm_probs[t])
 
         # record the results
         selected_arms.append(chosen_arm)
@@ -46,14 +36,19 @@ def simulate_one_alg(reward_probabilities, n_rounds, algorithm, output_all_arm_p
     return selected_arms, rewards, best_reward, arm_probs
 
 
-def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, T_timespan, n_simulations, n_arms, reward_probabilities):
+def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, n_simulations, reward_probabilities):
+    first_alg_key = list(algorithms.keys())[0]
+    T_timespan = algorithms[first_alg_key]['params']['n_rounds']
+    n_arms = algorithms[first_alg_key]['params']['n_arms']
+
     selected_arm_all = np.zeros(shape=[len(algorithms), T_timespan])
     regrets_all = np.zeros(shape=[len(algorithms), T_timespan])
     arm_probs_all = np.zeros(shape=[len(algorithms), T_timespan, n_arms])
     expected_rewards_all = np.zeros(shape=[len(algorithms)])
 
-    for alg_idx, (algorithm, args) in enumerate(algorithms):
-        model = algorithm(*args)
+    for alg_idx, algorithm in enumerate(algorithms):
+        # model = algorithm(*args)
+        model = algorithms[algorithm]['model'](**algorithms[algorithm]['params'])
         model.set_name(algorithms_name[alg_idx])
         selected_arms, rewards, best_reward, arm_prob = simulate_one_alg(reward_probabilities,
                                                                          T_timespan,

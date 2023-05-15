@@ -6,35 +6,49 @@ from simulate import simulate_single_simulation
 from multiprocessing import Pool, cpu_count, Manager
 import pickle
 
-
 if __name__ == '__main__':
 
     print_flag = True
     reward_probabilities = [0.2] + [0.25]
-    # reward_probabilities = [0.8] + [0.9]
 
-    message(f'reward_probabilities: {reward_probabilities}', print_flag=True)
+    opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
+
+    # reward_probabilities = [0.8] + [0.9]
+    # opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
 
     # to pick the best configuration for MS+, doing a grid search from 100 simulations
     # opt_config = SearchOptConfig(reward_probabilities, 100)
-    opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
-    # opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
+
+    message(f'reward_probabilities: {reward_probabilities}', print_flag=True)
 
     # set algorithms and their parameters
     variance = float(1 / 4)
-    T_timespan = 100
+    T_timespan = 1000
     n_arms = len(reward_probabilities)
-    n_simulations = 20
-    algorithms = [(BernoulliTS, [n_arms, T_timespan]),
-                  (KLMS, [n_arms, T_timespan]),
-                  (KLMSJefferysPrior, [n_arms, T_timespan]),
-                  (MS, [n_arms, T_timespan, variance]),
-                  (MSPlus, [n_arms] + [T_timespan] + opt_config + [variance])]
-    algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
+    n_simulations = 100
+
+    algorithms = {'BernoulliTS':
+                      {'model': BernoulliTS,
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan}},
+                  'KL-MS':
+                      {'model': KLMS,
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan}},
+                  'KL-MS+JefferysPrior':
+                      {'model': KLMSJefferysPrior,
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan}},
+                  'MS':
+                      {'model': MS,
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
+                                  "variance": variance}},
+                  'MS+':
+                      {'model': MSPlus,
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
+                                  "variance": variance, "B": opt_config[0], "C": opt_config[1], "D": opt_config[2]}}}
+    algorithms_name = list(algorithms.keys())
 
     # parallel simulation process
     # Use a maximum of 16 processes or the available CPU threads, whichever is smaller
-    num_processes = min(16, cpu_count())
+    num_processes = min(24, cpu_count())
     pool = Pool(processes=num_processes)
 
     # Create a shared counter and a lock.
@@ -44,7 +58,8 @@ if __name__ == '__main__':
 
     # Start the pool with the modified function.
     results = pool.starmap(simulate_single_simulation,
-                           [(i, counter, lock, algorithms, algorithms_name, T_timespan, n_simulations, n_arms, reward_probabilities) for i in range(n_simulations)])
+                           [(i, counter, lock, algorithms, algorithms_name, n_simulations, reward_probabilities) for i
+                            in range(n_simulations)])
 
     print(f"All {n_simulations} simulations completed.")
 
@@ -69,15 +84,15 @@ if __name__ == '__main__':
 
     # parameters for plotting
     ref_alg = "BernoulliTS"
-    experiment_param = ' | mu='+str(reward_probabilities)+' | simulations='+str(n_simulations)
+    experiment_param = ' | mu=' + str(reward_probabilities) + ' | simulations=' + str(n_simulations)
 
     # plot cumulative regret vs time step
     cum_regrets = np.cumsum(regrets, axis=2)
     plot_regrets(cum_regrets,
                  ci=0.95,
                  x_label='time step',
-                 y_label='cumulative regret'+experiment_param,
-                 title='Cumulative Regret Comparison'+'mu='+str(reward_probabilities),
+                 y_label='cumulative regret' + experiment_param,
+                 title='Cumulative Regret Comparison' + 'mu=' + str(reward_probabilities),
                  label=algorithms_name,
                  ref_alg=ref_alg,
                  add_ci=True,
@@ -87,7 +102,7 @@ if __name__ == '__main__':
                  ci=0.95,
                  x_label='time step',
                  y_label='cumulative regret',
-                 title='Cumulative Regret Comparison'+experiment_param,
+                 title='Cumulative Regret Comparison' + experiment_param,
                  label=algorithms_name,
                  ref_alg=ref_alg,
                  add_ci=False,
@@ -99,7 +114,7 @@ if __name__ == '__main__':
                  ci=0.95,
                  x_label='time step',
                  y_label='average regret',
-                 title='Average Regret Comparison'+experiment_param,
+                 title='Average Regret Comparison' + experiment_param,
                  label=algorithms_name,
                  ref_alg=ref_alg,
                  add_ci=True,
@@ -109,7 +124,7 @@ if __name__ == '__main__':
                  ci=0.95,
                  x_label='time step',
                  y_label='average regret',
-                 title='Average Regret Comparison'+experiment_param,
+                 title='Average Regret Comparison' + experiment_param,
                  label=algorithms_name,
                  ref_alg=ref_alg,
                  add_ci=False,
@@ -121,7 +136,7 @@ if __name__ == '__main__':
     plot_regrets(avg_arm_prob,
                  x_label='arm index',
                  y_label='average arm probability',
-                 title='Arm Probability Comparison'+experiment_param,
+                 title='Arm Probability Comparison' + experiment_param,
                  label=algorithms_name,
                  save_path='./figures/arm_prob.png')
 
@@ -131,7 +146,7 @@ if __name__ == '__main__':
                                     label=algorithms_name,
                                     x_label='arm index',
                                     y_label='average arm probability',
-                                    title='Arm Probability Histogram Comparison'+experiment_param,
+                                    title='Arm Probability Histogram Comparison' + experiment_param,
                                     save_path='./figures/arm_prob_hist.png')
 
     # plot the optimal arm probability
@@ -140,7 +155,7 @@ if __name__ == '__main__':
                  ci=0.95,
                  x_label='time step',
                  y_label='probability of the best arm',
-                 title='Probability of the Best Arm Comparison'+experiment_param,
+                 title='Probability of the Best Arm Comparison' + experiment_param,
                  label=algorithms_name,
                  ref_alg="BernoulliTS",
                  add_ci=False,
