@@ -47,13 +47,8 @@ def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_pro
 # def evaluate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, n_simulations, env_reward):
 def evaluate_single_simulation(eval_algorithm, eval_algorithm_name, env_reward):
     '''
-
-    :param simulation_idx: scalar
-    :param counter:
-    :param lock:
     :param eval_algorithm: dictionary. Store the algorithm and its corresponding model and parameters needed to be evaluated
     :param eval_algorithm_name: list of string. Store the name of the algorithm
-    :param n_simulations: scalar
     :param env_reward: numpy array with shape [number of algorithm wait to evaluate, T_timespan, n_arms]
     '''
     first_alg_key = list(eval_algorithm.keys())[0]
