@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
     # plot arm probability
     arm_probs_last_round = arm_probs[:, :, -1, :]
-    avg_arm_prob = np.mean(arm_probs_last_round, axis=0).reshape(1, len(algorithms), n_arms)
+    avg_arm_prob = np.expand_dims(np.mean(arm_probs_last_round, axis=0), axis=0)
     plot_regrets(avg_arm_prob,
                  x_label='arm index',
                  y_label='average arm probability',
