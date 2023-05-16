@@ -4,7 +4,6 @@ from scipy.stats import gaussian_kde
 from scipy import stats
 from matplotlib.cm import get_cmap
 
-
 figure_size = (8, 6)
 font_size = 8
 
@@ -25,8 +24,8 @@ def plot_regret(regret, title=None, label=None):
     plt.show()
 
 
-def plot_regrets(regrets, ci=0.95, x_label=None, y_label=None, title=None,
-                 label=None, ref_alg=None, add_ci=False, save_path=None):
+def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
+               label=None, ref_alg=None, add_ci=False, save_path=None, exclude_alg=None):
     figure_size = (10, 6)  # Set your desired figure size
     font_size = 10  # Set your desired font size
 
@@ -45,6 +44,10 @@ def plot_regrets(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     ax1 = plt.gca()  # Get the current axes
 
     for idx_alg in range(num_algorithm):
+
+        if exclude_alg is not None and label[idx_alg] in exclude_alg:
+            continue
+
         ax1.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
 
         # Add confidence interval
@@ -78,7 +81,6 @@ def plot_regrets(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     plt.show()
 
 
-
 def plot_arm_prob(arm_probs, title=None, label=None):
     plt.figure()
     for idx, arm_prob in enumerate(arm_probs):
@@ -90,43 +92,49 @@ def plot_arm_prob(arm_probs, title=None, label=None):
     plt.show()
 
 
-def plot_average_arm_prob_histogram(arm_probs, bin_width=0.2, x_label=None, y_label=None,
-                                    label=None, title=None, confidence=0.95,
-                                    save_path=None):
+def plot_histogram_with_bins(arm_probs, bin_width=0.2, x_label=None, y_label=None,
+                             label=None, title=None, confidence=0.95,
+                             save_path=None, exclude_alg=None):
     # Calculate the average arm probability along the simulation axis
     average_probs = np.mean(arm_probs, axis=0)
     std_probs = np.std(arm_probs, axis=0)
 
     # Get the number of arms and models
-    num_arms = average_probs.shape[1]
-    num_models = average_probs.shape[0]
+    n_algorithms, n_arms = average_probs.shape
+    n_exclude = len(exclude_alg) if exclude_alg is not None else 0
 
     # Plotting the histograms
     plt.figure()
 
     # Iterate over each model
-    for model in range(num_models):
+    bin_center_offset = 0
+    for alg_idx in range(n_algorithms):
+        if exclude_alg is not None and label[alg_idx] in exclude_alg:
+            bin_center_offset += 1
+            continue
         # Get the average probabilities and standard deviations for the current model
-        model_avg_probs = average_probs[model, :]
-        model_std_probs = std_probs[model, :]
+        model_avg_probs = average_probs[alg_idx, :]
+        model_std_probs = std_probs[alg_idx, :]
 
         # Calculate the confidence interval for each bin
-        conf_interval = stats.t.interval(confidence, df=arm_probs.shape[0]-1, loc=model_avg_probs, scale=model_std_probs / np.sqrt(arm_probs.shape[0]))
+        conf_interval = stats.t.interval(confidence, df=arm_probs.shape[0] - 1, loc=model_avg_probs,
+                                         scale=model_std_probs / np.sqrt(arm_probs.shape[0]))
 
         # Calculate the center of each bin for the current model
-        bin_centers = np.arange(num_arms) + (model - (num_models - 1) / 2) * bin_width
+        bin_centers = np.arange(n_arms) + (alg_idx - bin_center_offset - (n_algorithms - n_exclude - 1) / 2) * bin_width
 
         # Plot the histogram with error bars for the current model
         plt.bar(bin_centers, model_avg_probs, width=bin_width, alpha=0.7,
-                label=f'{label[model]}' if label else f'Model {model + 1}')
+                label=f'{label[alg_idx]}' if label else f'Model {alg_idx + 1}')
 
         # Add error bars representing the confidence interval
-        plt.errorbar(bin_centers, model_avg_probs, yerr=np.abs(conf_interval - model_avg_probs), fmt='none', color='black')
+        plt.errorbar(bin_centers, model_avg_probs, yerr=np.abs(conf_interval - model_avg_probs), fmt='none',
+                     color='black')
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
-    plt.xticks(np.arange(num_arms), np.arange(1, num_arms + 1))  # Set integer indices on x-axis
+    plt.xticks(np.arange(n_arms), np.arange(1, n_arms + 1))  # Set integer indices on x-axis
     plt.legend()
 
     if save_path:
@@ -136,7 +144,7 @@ def plot_average_arm_prob_histogram(arm_probs, bin_width=0.2, x_label=None, y_la
 
 
 def plot_density(rewards, title=None, label=None, x_label=None, y_label=None, save_path=None):
-    fig= plt.figure(figsize=figure_size)
+    fig = plt.figure(figsize=figure_size)
 
     n_simulations, num_algorithm = rewards.shape
 
@@ -165,8 +173,9 @@ def plot_density(rewards, title=None, label=None, x_label=None, y_label=None, sa
     plt.show()
 
 
-def plot_hist(data, title=None, label=None, x_label=None, y_label=None, save_path=None, add_density=False, oracle=None):
-    fig= plt.figure(figsize=figure_size)
+def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=None,
+                         save_path=None, add_density=False, oracle=None, exclude_alg=None):
+    fig = plt.figure(figsize=figure_size)
 
     n_simulations, num_algorithm = data.shape
 
@@ -175,13 +184,18 @@ def plot_hist(data, title=None, label=None, x_label=None, y_label=None, save_pat
 
     # Iterate over the columns of the data and plot the density function for each
     for idx_alg in range(num_algorithm):
+        if exclude_alg is not None and label[idx_alg] in exclude_alg:
+            continue
         plt.hist(data[:, idx_alg], bins=20, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
-        if oracle is not None:
-            plt.axvline(x=oracle[idx_alg], color=cmap(idx_alg), linestyle='--', label='Oracle:'+label[idx_alg])
+
+    if oracle is not None:
+        plt.axvline(x=oracle, color='black', linestyle='--', label='Oracle')
 
     if add_density:
         # Iterate over the columns of the data and plot the density function for each
         for idx_alg in range(num_algorithm):
+            if exclude_alg is not None and label[idx_alg] in exclude_alg:
+                continue
             alg_reward = data[:, idx_alg]
 
             # Fit a probability distribution to the column data
