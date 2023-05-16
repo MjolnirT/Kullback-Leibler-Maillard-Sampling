@@ -29,9 +29,10 @@ def SearchOptConfig(reward, n_arms, n_rounds):
     return best_config
 
 
-env_reward = [0.8] + [0.9]
-# reward_probabilities = [0.8] + [0.9]
+if __name__ == '__main__':
+    env_reward = [0.8] + [0.9]
+    # reward_probabilities = [0.8] + [0.9]
 
-n_arms = len(env_reward)
-n_rounds = 100
-SearchOptConfig(env_reward, n_arms, n_rounds)
+    n_arms = len(env_reward)
+    n_rounds = 100
+    SearchOptConfig(env_reward, n_arms, n_rounds)

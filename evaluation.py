@@ -80,57 +80,63 @@ def evaluate_single_simulation(eval_algorithm, eval_algorithm_name, env_reward):
     return selected_arm_all, rewards_all
 
 
-env_reward = [0.2, 0.25]
-with open('simulation.pkl', 'rb') as file:
-    results = pickle.load(file)
+if __name__ == '__main__':
+    env_reward = [0.8] + [0.9]
+    with open('simulation.pkl', 'rb') as file:
+        results = pickle.load(file)
 
-n_simulations = len(results)
-n_algorithms, T_timespan, n_arms= results[0][2].shape
-select_arms = np.zeros(shape=[n_simulations, n_algorithms, T_timespan], dtype=int)
-regrets = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
-arm_probs = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
-expect_rewards = np.zeros(shape=[n_simulations, n_algorithms])
-for i, result in enumerate(results):
-    select_arms[i], regrets[i], arm_probs[i], expect_rewards[i] = result
+    n_simulations = len(results)
+    n_algorithms, T_timespan, n_arms = results[0][2].shape
+    select_arms = np.zeros(shape=[n_simulations, n_algorithms, T_timespan], dtype=int)
+    regrets = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
+    arm_probs = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
+    expect_rewards = np.zeros(shape=[n_simulations, n_algorithms])
+    for i, result in enumerate(results):
+        select_arms[i], regrets[i], arm_probs[i], expect_rewards[i] = result
 
-rewards = np.max(env_reward) - regrets
-# inverse propensity score weighting
-ipw_reward = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
-for sim_idx in range(n_simulations):
-    for alg_idx in range(n_algorithms):
-        for tim_idx in range(n_arms, T_timespan):
-            chosen_arm = select_arms[sim_idx, alg_idx, tim_idx]
-            ipw_reward[sim_idx, alg_idx, tim_idx, chosen_arm] = \
-                rewards[sim_idx, alg_idx, tim_idx] / \
-                arm_probs[sim_idx, alg_idx, tim_idx, chosen_arm]
+    rewards = np.max(env_reward) - regrets
+    # inverse propensity score weighting
+    ipw_reward = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
+    for sim_idx in range(n_simulations):
+        for alg_idx in range(n_algorithms):
+            for tim_idx in range(n_arms, T_timespan):
+                chosen_arm = select_arms[sim_idx, alg_idx, tim_idx]
+                ipw_reward[sim_idx, alg_idx, tim_idx, chosen_arm] = \
+                    rewards[sim_idx, alg_idx, tim_idx] / \
+                    arm_probs[sim_idx, alg_idx, tim_idx, chosen_arm]
 
-eval_reward = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
-select_arms = np.zeros(shape=[n_simulations, n_algorithms, T_timespan], dtype=int)
-eval_algorithms = {'Uniform':
-                       {'model': Uniform,
-                        'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
-eval_algorithms_name = list(eval_algorithms.keys())[0]
-algorithms_name = ['BernoulliTS','KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
-for i in range(n_simulations):
-    select_arms[i], eval_reward[i] = evaluate_single_simulation(eval_algorithms, eval_algorithms_name, ipw_reward[i])
-eval_reward = np.cumsum(eval_reward, axis=2)
+    eval_reward = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
+    select_arms = np.zeros(shape=[n_simulations, n_algorithms, T_timespan], dtype=int)
+    eval_algorithms = {'Uniform':
+                           {'model': Uniform,
+                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
+    eval_algorithms_name = list(eval_algorithms.keys())[0]
+    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS+', 'MS']
 
-experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
-plot_regrets(eval_reward,
-             ci=0.95,
-             x_label='time step',
-             y_label='cumulative reward',
-             title='Cumulative Reward Comparison' + experiment_param,
-             label=algorithms_name,
-             ref_alg="BernoulliTS",
-             add_ci=True)
+    for i in range(n_simulations):
+        select_arms[i], eval_reward[i] = evaluate_single_simulation(eval_algorithms, eval_algorithms_name,
+                                                                    ipw_reward[i])
+    eval_reward = np.cumsum(eval_reward, axis=2)
 
-eval_reward_last = eval_reward[:, :, -1]
-oracle = arm_probs[:, :, -1, :].mean(axis=0).dot(env_reward)*T_timespan
-plot_hist(eval_reward_last,
-          x_label='cumulative reward',
-          y_label='frequency',
-          title='Cumulative Reward Distribution' + experiment_param,
-          label=algorithms_name,
-          add_density=True,
-          oracle=oracle)
+    experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
+    plot_lines(eval_reward,
+               ci=0.95,
+               x_label='time step',
+               y_label='cumulative reward',
+               title='Cumulative Reward Comparison' + experiment_param,
+               label=algorithms_name,
+               ref_alg="BernoulliTS",
+               add_ci=True,
+               exclude_alg=exclude_alg)
+
+    eval_reward_last = eval_reward[:, :, -1]
+    oracle = (np.ones(shape=n_arms) / n_arms).dot(env_reward) * T_timespan
+    plot_hist_overlapped(eval_reward_last,
+                         x_label='cumulative reward',
+                         y_label='frequency',
+                         title='Cumulative Reward Distribution' + experiment_param,
+                         label=algorithms_name,
+                         add_density=True,
+                         oracle=oracle,
+                         exclude_alg=exclude_alg)
