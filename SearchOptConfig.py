@@ -29,7 +29,7 @@ def SearchOptConfig(reward, n_arms, n_rounds):
     return best_config
 
 
-env_reward = [0.2] + [0.25]
+env_reward = [0.8] + [0.9]
 # reward_probabilities = [0.8] + [0.9]
 
 n_arms = len(env_reward)

@@ -9,12 +9,11 @@ import pickle
 if __name__ == '__main__':
 
     print_flag = True
-    env_reward = [0.2] + [0.25]
+    # env_reward = [0.2] + [0.25]
+    # opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
 
-    opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.2, 0.25
-
-    # reward_probabilities = [0.8] + [0.9]
-    # opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
+    env_reward = [0.8] + [0.9]
+    opt_config = [2.71828183, 0.36787944, 0.36787944]  # optimal config for 0.8, 0.9
 
     # to pick the best configuration for MS+, doing a grid search from 100 simulations
     # opt_config = SearchOptConfig(reward_probabilities, 100)
@@ -23,9 +22,9 @@ if __name__ == '__main__':
 
     # set algorithms and their parameters
     variance = float(1 / 4)
-    T_timespan = 1000
+    T_timespan = 10000
     n_arms = 2
-    n_simulations = 100
+    n_simulations = 2000
 
     algorithms = {'BernoulliTS':
                       {'model': BernoulliTS,

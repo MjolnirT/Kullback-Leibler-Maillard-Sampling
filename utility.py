@@ -27,6 +27,9 @@ def plot_regret(regret, title=None, label=None):
 
 def plot_regrets(regrets, ci=0.95, x_label=None, y_label=None, title=None,
                  label=None, ref_alg=None, add_ci=False, save_path=None):
+    figure_size = (10, 6)  # Set your desired figure size
+    font_size = 10  # Set your desired font size
+
     plt.figure(figsize=figure_size)
     n_simulations, num_algorithm, T_timespan = regrets.shape
     average_regret = regrets.mean(axis=0)
@@ -39,34 +42,41 @@ def plot_regrets(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     # Get a colormap with the number of algorithms
     cmap = get_cmap('tab10', num_algorithm)
 
+    ax1 = plt.gca()  # Get the current axes
+
     for idx_alg in range(num_algorithm):
-        plt.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
+        ax1.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
 
         # Add confidence interval
         if add_ci is True:
-            if label[idx_alg] in ref_alg:
+            if label[idx_alg] is ref_alg:
                 print("using ", label[idx_alg], "as the reference algorithm")
-                plt.fill_between(range(1, T_timespan + 1),
+                ax1.fill_between(range(1, T_timespan + 1),
                                  lower_bound[idx_alg, :],
                                  upper_bound[idx_alg, :],
                                  color=cmap(idx_alg),
                                  alpha=0.2)
                 # Add label to the confidence interval
-                plt.text(
+                ax1.text(
                     T_timespan, upper_bound[idx_alg, -1],
                     f'{label[idx_alg]}:{confidence_level}% CI', ha='right', va='bottom',
                     color=cmap(idx_alg), fontsize=8
                 )
 
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
-    plt.legend(fontsize=font_size)
+    # ax2 = ax1.twinx()  # Create a twin axes object
+    # for idx_alg in range(num_algorithm):
+    #     ax2.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
+
+    ax1.set_xlabel(x_label)
+    ax1.set_ylabel(y_label)
+    ax1.set_title(title)
+    ax1.legend(fontsize=font_size)
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
 
     plt.show()
+
 
 
 def plot_arm_prob(arm_probs, title=None, label=None):
