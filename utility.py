@@ -5,7 +5,7 @@ from scipy import stats
 from matplotlib.cm import get_cmap
 
 figure_size = (8, 6)
-font_size = 8
+font_size = 12
 
 
 def plot_regret(regret, title=None, label=None):
@@ -25,10 +25,8 @@ def plot_regret(regret, title=None, label=None):
 
 
 def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
-               label=None, ref_alg=None, add_ci=False, save_path=None, exclude_alg=None):
-    figure_size = (10, 6)  # Set your desired figure size
-    font_size = 10  # Set your desired font size
-
+               label=None, ref_alg=None, add_ci=False, save_path=None, exclude_alg=None,
+               font_size=10, figure_size=(10, 6)):
     plt.figure(figsize=figure_size)
     n_simulations, num_algorithm, T_timespan = regrets.shape
     average_regret = regrets.mean(axis=0)
@@ -48,11 +46,11 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
         if exclude_alg is not None and label[idx_alg] in exclude_alg:
             continue
 
-        ax1.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
+        ax1.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], color=cmap(idx_alg), label=label[idx_alg])
 
         # Add confidence interval
         if add_ci is True:
-            if label[idx_alg] is ref_alg:
+            if label[idx_alg] in ref_alg:
                 print("using ", label[idx_alg], "as the reference algorithm")
                 ax1.fill_between(range(1, T_timespan + 1),
                                  lower_bound[idx_alg, :],
@@ -63,15 +61,15 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
                 ax1.text(
                     T_timespan, upper_bound[idx_alg, -1],
                     f'{label[idx_alg]}:{confidence_level}% CI', ha='right', va='bottom',
-                    color=cmap(idx_alg), fontsize=8
+                    color=cmap(idx_alg), fontsize=font_size
                 )
 
     # ax2 = ax1.twinx()  # Create a twin axes object
     # for idx_alg in range(num_algorithm):
     #     ax2.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], label=label[idx_alg])
 
-    ax1.set_xlabel(x_label)
-    ax1.set_ylabel(y_label)
+    ax1.set_xlabel(x_label, fontsize=font_size)
+    ax1.set_ylabel(y_label, fontsize=font_size)
     ax1.set_title(title)
     ax1.legend(fontsize=font_size)
 
@@ -174,9 +172,9 @@ def plot_density(rewards, title=None, label=None, x_label=None, y_label=None, sa
 
 
 def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=None,
-                         save_path=None, add_density=False, oracle=None, exclude_alg=None):
+                         save_path=None, add_density=False, oracle=None, exclude_alg=None,
+                         figure_size=(8, 6), font_size=12):
     fig = plt.figure(figsize=figure_size)
-
     n_simulations, num_algorithm = data.shape
 
     # Get a colormap with the number of algorithms
@@ -186,7 +184,9 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     for idx_alg in range(num_algorithm):
         if exclude_alg is not None and label[idx_alg] in exclude_alg:
             continue
-        plt.hist(data[:, idx_alg], bins=20, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
+        alg_reward = data[:, idx_alg]
+        finite_values = alg_reward[np.isfinite(alg_reward)]
+        plt.hist(finite_values, bins=40, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
 
     if oracle is not None:
         plt.axvline(x=oracle, color='black', linestyle='--', label='Oracle')
@@ -197,21 +197,25 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
             if exclude_alg is not None and label[idx_alg] in exclude_alg:
                 continue
             alg_reward = data[:, idx_alg]
-
+            finite_values = alg_reward[np.isfinite(alg_reward)]
             # Fit a probability distribution to the column data
-            dist = gaussian_kde(alg_reward)
+            dist = gaussian_kde(finite_values)
 
             # Evaluate the PDF at a range of x-values
-            x = np.linspace(alg_reward.min(), alg_reward.max(), 100)
+            x = np.linspace(finite_values.min(), finite_values.max(), 100)
             y = dist.pdf(x)
 
             plt.plot(x, y, color=cmap(idx_alg), label=label[idx_alg])
 
+            plt.axvline(x=finite_values.mean(),
+                        color=cmap(idx_alg), alpha=0.7, linestyle='--',
+                        label=label[idx_alg])
+
     # Add a legend and labels to the plot
     plt.legend(fontsize=font_size)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
+    plt.xlabel(x_label, fontsize=font_size)
+    plt.ylabel(y_label, fontsize=font_size)
+    plt.title(title, fontsize=font_size)
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')

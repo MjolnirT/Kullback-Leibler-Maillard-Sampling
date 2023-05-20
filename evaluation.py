@@ -1,6 +1,7 @@
 import pickle
 from Base import Uniform
 from utility import *
+import time
 
 
 def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
@@ -81,8 +82,13 @@ def evaluate_single_simulation(eval_algorithm, eval_algorithm_name, env_reward):
 
 
 if __name__ == '__main__':
+    is_print = True
+    start_time = time.time()
+    # env_reward = [0.2] + [0.25]
     env_reward = [0.8] + [0.9]
-    with open('simulation.pkl', 'rb') as file:
+    # env_reward = np.linspace(0.1, 0.9, 9)
+    with open('simulation_T_10000_s_2000_test2.pkl', 'rb') as file:
+        # with open('simulation.pkl', 'rb') as file:
         results = pickle.load(file)
 
     n_simulations = len(results)
@@ -96,6 +102,10 @@ if __name__ == '__main__':
 
     rewards = np.max(env_reward) - regrets
     # inverse propensity score weighting
+    # T_timespan = 2000
+    # n_simulations = 200
+    # n_algorithms = 2
+    message(f"Start constructing ipw estimator", is_print)
     ipw_reward = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
     for sim_idx in range(n_simulations):
         for alg_idx in range(n_algorithms):
@@ -107,36 +117,66 @@ if __name__ == '__main__':
 
     eval_reward = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
     select_arms = np.zeros(shape=[n_simulations, n_algorithms, T_timespan], dtype=int)
-    eval_algorithms = {'Uniform':
-                           {'model': Uniform,
-                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
+    eval_algorithms = {'Uniform': {'model': Uniform, 'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithms.keys())[0]
     algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS+', 'MS']
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
 
+    message(f"Start evaluating the algorithms", is_print)
     for i in range(n_simulations):
+        if i % 50 == 0:
+            message(f"Simulation {i}", is_print)
         select_arms[i], eval_reward[i] = evaluate_single_simulation(eval_algorithms, eval_algorithms_name,
                                                                     ipw_reward[i])
     eval_reward = np.cumsum(eval_reward, axis=2)
 
+    message(f"Start plotting", is_print)
     experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
-    plot_lines(eval_reward,
-               ci=0.95,
-               x_label='time step',
-               y_label='cumulative reward',
-               title='Cumulative Reward Comparison' + experiment_param,
-               label=algorithms_name,
-               ref_alg="BernoulliTS",
-               add_ci=True,
-               exclude_alg=exclude_alg)
+    # plot_lines(eval_reward,
+    #            ci=0.95,
+    #            x_label='time step',
+    #            y_label='cumulative reward',
+    #            # title='Cumulative Reward Comparison' + experiment_param,
+    #            label=algorithms_name,
+    #            ref_alg="BernoulliTS",
+    #            add_ci=True,
+    #            save_path='./figures/eval_reward_line.png',
+    #            figure_size=(8,6),
+    #            font_size=18,
+    #            exclude_alg=exclude_alg)
 
-    eval_reward_last = eval_reward[:, :, -1]
-    oracle = (np.ones(shape=n_arms) / n_arms).dot(env_reward) * T_timespan
+    # eval_reward_last = eval_reward[:, :, -1]
+    eval_reward_last = eval_reward[:, :, -1] / T_timespan
+
+    with open('eval_reward_last.pkl', 'wb') as file:
+        pickle.dump(eval_reward_last, file)
+
+    with open('eval_reward_last.pkl', 'rb') as file:
+        eval_reward_last = pickle.load(file)
+    # oracle = (np.ones(shape=n_arms) / n_arms).dot(env_reward) * T_timespan
+    oracle = (np.ones(shape=n_arms) / n_arms).dot(env_reward)
     plot_hist_overlapped(eval_reward_last,
-                         x_label='cumulative reward',
+                         x_label='average reward',
                          y_label='frequency',
-                         title='Cumulative Reward Distribution' + experiment_param,
+                         # title='Cumulative Reward Distribution' + experiment_param,
                          label=algorithms_name,
                          add_density=True,
                          oracle=oracle,
+                         save_path='./figures/eval_reward_hist.png',
+                         figure_size=(8, 6),
+                         font_size=18,
                          exclude_alg=exclude_alg)
+
+    # MSE = np.mean((eval_reward_last - oracle) ** 2, axis=0)
+    # message(f"MSE: {MSE}", is_print)
+    eval_reward_last_TS = eval_reward_last[:, 0]
+    eval_reward_last_KLMS = eval_reward_last[:, 1]
+    eval_reward_last_TS = eval_reward_last_TS[np.isfinite(eval_reward_last_TS)]
+    eval_reward_last_KLMS = eval_reward_last_KLMS[np.isfinite(eval_reward_last_KLMS)]
+    MSE_TS = np.mean((eval_reward_last_TS - oracle) ** 2)
+    MSE_KL_MS = np.mean((eval_reward_last_KLMS - oracle) ** 2)
+    message(f"MSE TS: {MSE_TS}", is_print)
+    message(f"MSE KL-MS: {MSE_KL_MS}", is_print)
+    message(f"TS Drop {len(eval_reward_last[:, 0]) - len(eval_reward_last_TS)} NaN values", is_print)
+    message(f"KL-MS Drop {len(eval_reward_last[:, 1]) - len(eval_reward_last_KLMS)} NaN values", is_print)
+    message(f'Time elapsed: {time.time() - start_time:.2f}s', is_print)
