@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # parallel simulation process
     # Use a maximum of 24 processes or the available CPU threads, whichever is smaller
-    num_processes = min(24, cpu_count())
+    num_processes = min(8, cpu_count())
     pool = Pool(processes=num_processes)
 
     # Create a shared counter and a lock.
@@ -72,6 +72,6 @@ if __name__ == '__main__':
         pickle.dump(results, file)
 
     # print out execution time
-    message(f'time elapsed {time.time()-start_time}')
+    message(f'time elapsed {time.time()-start_time}', print_flag)
     generate_plots(filename, env_reward, algorithms_name, ref_alg='BernoulliTS')
-    message(f'time elapsed {time.time()-start_time}')
+    message(f'time elapsed {time.time()-start_time}', print_flag)
