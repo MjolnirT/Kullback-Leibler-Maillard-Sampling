@@ -20,7 +20,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
     # parameters for plotting
     experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
 
-    # plot cumulative regret vs time step
+    # plot cumulative regret vs time step with confidence interval
     cum_regrets = np.cumsum(regrets, axis=2)
     plot_lines(cum_regrets,
                ci=0.95,
@@ -33,6 +33,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/cum_regret.png',
                exclude_alg=exclude_alg)
 
+    # plot cumulative regret vs time step without confidence interval
     plot_lines(cum_regrets,
                ci=0.95,
                x_label='time step',
@@ -44,7 +45,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/cum_regret_no_ci.png',
                exclude_alg=exclude_alg)
 
-    # plot average regret vs time step
+    # plot average regret vs time step with confidence interval
     avg_regret = cum_regrets / np.arange(1, T_timespan + 1)
     plot_lines(avg_regret,
                ci=0.95,
@@ -57,6 +58,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/avg_regret.png',
                exclude_alg=exclude_alg)
 
+    # plot average regret vs time step without confidence interval
     plot_lines(avg_regret,
                ci=0.95,
                x_label='time step',
@@ -68,7 +70,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/avg_regret_no_ci.png',
                exclude_alg=exclude_alg)
 
-    # plot arm probability
+    # plot arm probability vs arm index
     arm_probs_last_round = arm_probs[:, :, -1, :]
     avg_arm_prob = np.expand_dims(np.mean(arm_probs_last_round, axis=0), axis=0)
     plot_lines(avg_arm_prob,
@@ -79,7 +81,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/arm_prob.png',
                exclude_alg=exclude_alg)
 
-    # plot arm probability with histogram
+    # plot arm probability in histogram
     plot_histogram_with_bins(arm_probs_last_round,
                              bin_width=0.1,
                              label=algorithms_name,
@@ -89,7 +91,7 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                              save_path='./figures/arm_prob_hist.png',
                              exclude_alg=exclude_alg)
 
-    # plot the optimal arm probability
+    # plot the optimal arm probability vs time step
     arm_best = arm_probs[:, :, :, -1]
     plot_lines(arm_best,
                ci=0.95,

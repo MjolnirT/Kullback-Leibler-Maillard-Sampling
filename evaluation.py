@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # env_reward = [0.2] + [0.25]
     env_reward = [0.8] + [0.9]
     # env_reward = np.linspace(0.1, 0.9, 9)
-    with open('simulation_T_10000_s_2000_test2.pkl', 'rb') as file:
+    with open('simulation_T_1000s_20.pkl', 'rb') as file:
         # with open('simulation.pkl', 'rb') as file:
         results = pickle.load(file)
 
@@ -167,8 +167,6 @@ if __name__ == '__main__':
                          font_size=18,
                          exclude_alg=exclude_alg)
 
-    # MSE = np.mean((eval_reward_last - oracle) ** 2, axis=0)
-    # message(f"MSE: {MSE}", is_print)
     eval_reward_last_TS = eval_reward_last[:, 0]
     eval_reward_last_KLMS = eval_reward_last[:, 1]
     eval_reward_last_TS = eval_reward_last_TS[np.isfinite(eval_reward_last_TS)]

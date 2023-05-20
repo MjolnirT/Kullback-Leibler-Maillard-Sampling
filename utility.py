@@ -4,24 +4,21 @@ from scipy.stats import gaussian_kde
 from scipy import stats
 from matplotlib.cm import get_cmap
 
-figure_size = (8, 6)
-font_size = 12
 
-
-def plot_regret(regret, title=None, label=None):
-    plt.figure()
-    cum_regret = np.cumsum(np.array(regret))
-    plt.plot(range(len(cum_regret)), cum_regret, label=label)
-    plt.xlabel('Round')
-    plt.ylabel('Cumulative regret')
-    plt.title(title)
-    plt.show()
-
-    plt.plot(range(len(regret)), regret / np.arange(1, len(regret) + 1), label=label)
-    plt.xlabel('Round')
-    plt.ylabel('Average Regret')
-    plt.title(title)
-    plt.show()
+# def plot_regret(regret, title=None, label=None):
+#     plt.figure()
+#     cum_regret = np.cumsum(np.array(regret))
+#     plt.plot(range(len(cum_regret)), cum_regret, label=label)
+#     plt.xlabel('Round')
+#     plt.ylabel('Cumulative regret')
+#     plt.title(title)
+#     plt.show()
+#
+#     plt.plot(range(len(regret)), regret / np.arange(1, len(regret) + 1), label=label)
+#     plt.xlabel('Round')
+#     plt.ylabel('Average Regret')
+#     plt.title(title)
+#     plt.show()
 
 
 def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
@@ -79,15 +76,15 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     plt.show()
 
 
-def plot_arm_prob(arm_probs, title=None, label=None):
-    plt.figure()
-    for idx, arm_prob in enumerate(arm_probs):
-        plt.plot(range(len(arm_prob)), arm_prob, label=label[idx])
-    plt.xlabel('arm index')
-    plt.ylabel('Probability of arms')
-    plt.title(title)
-    plt.legend()
-    plt.show()
+# def plot_arm_prob(arm_probs, title=None, label=None):
+#     plt.figure()
+#     for idx, arm_prob in enumerate(arm_probs):
+#         plt.plot(range(len(arm_prob)), arm_prob, label=label[idx])
+#     plt.xlabel('arm index')
+#     plt.ylabel('Probability of arms')
+#     plt.title(title)
+#     plt.legend()
+#     plt.show()
 
 
 def plot_histogram_with_bins(arm_probs, bin_width=0.2, x_label=None, y_label=None,
@@ -141,34 +138,34 @@ def plot_histogram_with_bins(arm_probs, bin_width=0.2, x_label=None, y_label=Non
     plt.show()
 
 
-def plot_density(rewards, title=None, label=None, x_label=None, y_label=None, save_path=None):
-    fig = plt.figure(figsize=figure_size)
-
-    n_simulations, num_algorithm = rewards.shape
-
-    # Iterate over the columns of the data and plot the density function for each
-    for idx_alg in range(num_algorithm):
-        alg_reward = rewards[:, idx_alg]
-
-        # Fit a probability distribution to the column data
-        dist = gaussian_kde(alg_reward)
-
-        # Evaluate the PDF at a range of x-values
-        x = np.linspace(alg_reward.min(), alg_reward.max(), 100)
-        y = dist.pdf(x)
-
-        plt.plot(x, y, label=label[idx_alg])
-
-    # Add a legend and labels to the plot
-    plt.legend(fontsize=font_size)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
-
-    if save_path:
-        plt.savefig(save_path, bbox_inches='tight')
-    # Show the plot
-    plt.show()
+# def plot_density(rewards, title=None, label=None, x_label=None, y_label=None, save_path=None):
+#     fig = plt.figure(figsize=figure_size)
+#
+#     n_simulations, num_algorithm = rewards.shape
+#
+#     # Iterate over the columns of the data and plot the density function for each
+#     for idx_alg in range(num_algorithm):
+#         alg_reward = rewards[:, idx_alg]
+#
+#         # Fit a probability distribution to the column data
+#         dist = gaussian_kde(alg_reward)
+#
+#         # Evaluate the PDF at a range of x-values
+#         x = np.linspace(alg_reward.min(), alg_reward.max(), 100)
+#         y = dist.pdf(x)
+#
+#         plt.plot(x, y, label=label[idx_alg])
+#
+#     # Add a legend and labels to the plot
+#     plt.legend(fontsize=font_size)
+#     plt.xlabel(x_label)
+#     plt.ylabel(y_label)
+#     plt.title(title)
+#
+#     if save_path:
+#         plt.savefig(save_path, bbox_inches='tight')
+#     # Show the plot
+#     plt.show()
 
 
 def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=None,
@@ -242,6 +239,6 @@ def gaussian_KL_divergence(mu1, var1, mu2, var2):
     return KL
 
 
-def message(message, print_flag=False):
+def message(print_string, print_flag=False):
     if print_flag:
-        print(message)
+        print(print_string)

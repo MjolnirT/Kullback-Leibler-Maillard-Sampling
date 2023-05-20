@@ -12,9 +12,9 @@ import time
 if __name__ == '__main__':
     start_time = time.time()
     print_flag = True
-    env_reward = np.linspace(0.1, 0.9, 9)
+    # env_reward = np.linspace(0.1, 0.9, 9)
 
-    # env_reward = [0.8] + [0.9]
+    env_reward = [0.8] + [0.9]
 
     # to pick the best configuration for MS+, doing a grid search from 100 simulations
     opt_config = SearchOptConfig(env_reward, n_arms=len(env_reward), n_rounds=100)
@@ -24,8 +24,8 @@ if __name__ == '__main__':
     # set algorithms and their parameters
     variance = float(1 / 4)
     T_timespan = 1000
-    n_arms = env_reward.shape[0]
-    n_simulations = 200
+    n_arms = len(env_reward)
+    n_simulations = 20
 
     algorithms = {'BernoulliTS':
                       {'model': BernoulliTS,
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # parallel simulation process
     # Use a maximum of 24 processes or the available CPU threads, whichever is smaller
-    num_processes = min(8, cpu_count())
+    num_processes = min(20, cpu_count())
     pool = Pool(processes=num_processes)
 
     # Create a shared counter and a lock.
@@ -63,11 +63,10 @@ if __name__ == '__main__':
 
     print(f"All {n_simulations} simulations completed.")
 
-    # results = pool.map(simulate_single_simulation, range(n_simulations))
     pool.close()
     pool.join()
 
-    filename = 'simulation.pkl'
+    filename = 'simulation'+'_T_'+str(T_timespan)+'_s_'+str(n_simulations)+'.pkl'
     with open(filename, 'wb') as file:
         pickle.dump(results, file)
 
