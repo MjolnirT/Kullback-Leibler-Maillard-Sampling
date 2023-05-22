@@ -49,10 +49,6 @@ if __name__ == '__main__':
                        'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     algorithms_name = list(algorithms.keys())
 
-    with open('simulation_T_10000_s_200.pkl', 'rb') as file:
-        # with open('simulation.pkl', 'rb') as file:
-        results = pickle.load(file)
-
     # parallel simulation process
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
     num_processes = min(20, cpu_count())
