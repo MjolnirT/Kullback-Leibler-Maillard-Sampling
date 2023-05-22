@@ -28,11 +28,6 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     n_simulations, num_algorithm, T_timespan = regrets.shape
     average_regret = regrets.mean(axis=0)
 
-    # calculate the confidence interval
-    confidence_level = ci
-    lower_bound = np.quantile(regrets, (1 - confidence_level) / 2, axis=0)
-    upper_bound = np.quantile(regrets, 1 - (1 - confidence_level) / 2, axis=0)
-
     # Get a colormap with the number of algorithms
     cmap = get_cmap('tab10', num_algorithm)
 
@@ -48,7 +43,12 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
         # Add confidence interval
         if add_ci is True:
             if label[idx_alg] in ref_alg:
-                print("using ", label[idx_alg], "as the reference algorithm")
+                print("Adding CI to ", label[idx_alg])
+                # calculate the confidence interval
+                confidence_level = ci
+                lower_bound = np.quantile(regrets, (1 - confidence_level) / 2, axis=0)
+                upper_bound = np.quantile(regrets, 1 - (1 - confidence_level) / 2, axis=0)
+
                 ax1.fill_between(range(1, T_timespan + 1),
                                  lower_bound[idx_alg, :],
                                  upper_bound[idx_alg, :],

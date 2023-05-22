@@ -34,10 +34,10 @@ class BernoulliTS(Base):
     def get_arm_prob(self):
         # running a Monte Carlo simulation to get the probability of each arm
         simulation_rounds = 1000
-        self.prob_arm = np.zeros(shape=self.n_arms)
-        for i in range(simulation_rounds):
-            theta_samples = [np.random.beta(self.alpha[i], self.beta[i]) for i in range(self.n_arms)]
-            self.prob_arm[np.argmax(theta_samples)] += 1 / simulation_rounds
+        theta_samples = np.random.beta(self.alpha, self.beta, size=(simulation_rounds, self.n_arms))
+        arm_counts = np.argmax(theta_samples, axis=1)
+        counts = np.bincount(arm_counts, minlength=self.n_arms)
+        self.prob_arm = counts / simulation_rounds
         return self.prob_arm
 
 
