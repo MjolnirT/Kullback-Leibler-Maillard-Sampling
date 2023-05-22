@@ -29,9 +29,9 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
                ci=0.95,
                x_label='time step',
                y_label='cumulative reward',
-               # title='Cumulative Reward Comparison' + experiment_param,
+               title='Cumulative Reward Comparison' + experiment_param,
                label=algorithms_name,
-               ref_alg="BernoulliTS",
+               ref_alg=ref_alg,
                add_ci=True,
                save_path='./figures/eval_reward_line.png',
                figure_size=(8,6),
@@ -57,26 +57,23 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
     message(f"MSE: {MSE}", is_print)
     message(f"mean: {mean}", is_print)
 
-    TS_idx = 5
+    TS_idx = 0
     KL_MS_idx = 1
-    eval_reward_last_TS = eval_reward_last[:, TS_idx]
-    eval_reward_last_TS = eval_reward_last_TS[np.isfinite(eval_reward_last_TS)]
-    MSE_TS = np.mean((eval_reward_last_TS - oracle) ** 2)
-    mean_TS = np.mean(eval_reward_last_TS)
-    message(f"MSE TS: {MSE_TS}", is_print)
-    message(f"mean TS: {mean_TS}", is_print)
-    message(f'Bias TS: {mean_TS - oracle}', is_print)
+    TS_approx_idx = 5
+    generate_metric(eval_reward_last[:, TS_idx], oracle, is_print, algorithms_name[TS_idx])
+    generate_metric(eval_reward_last[:, KL_MS_idx], oracle, is_print, algorithms_name[KL_MS_idx])
+    generate_metric(eval_reward_last[:, TS_approx_idx], oracle, is_print, algorithms_name[TS_approx_idx])
 
-    eval_reward_last_KLMS = eval_reward_last[:, KL_MS_idx]
-    eval_reward_last_KLMS = eval_reward_last_KLMS[np.isfinite(eval_reward_last_KLMS)]
-    MSE_KL_MS = np.mean((eval_reward_last_KLMS - oracle) ** 2)
-    mean_KL_MS = np.mean(eval_reward_last_KLMS)
-    message(f"MSE KL-MS: {MSE_KL_MS}", is_print)
-    message(f"mean KL-MS: {mean_KL_MS}", is_print)
-    message(f'Bias KL-MS: {mean_KL_MS - oracle}', is_print)
 
-    message(f"TS Drop {len(eval_reward_last[:, TS_idx]) - len(eval_reward_last_TS)} NaN values", is_print)
-    message(f"KL-MS Drop {len(eval_reward_last[:, KL_MS_idx]) - len(eval_reward_last_KLMS)} NaN values", is_print)
+def generate_metric(reward, oracle, is_print, algorithm_name):
+    finite_reward = reward[np.isfinite(reward)]
+    MSE = np.mean((finite_reward - oracle) ** 2)
+    mean = np.mean(finite_reward)
+    message(f"{algorithm_name} MSE: {MSE}", is_print)
+    message(f"{algorithm_name} mean: {mean}", is_print)
+    message(f'{algorithm_name} Bias: {mean - oracle}', is_print)
+    message(f"{algorithm_name} Drop {len(reward) - len(finite_reward)} NaN values", is_print)
+    return MSE, mean
 
 
 if __name__ == '__main__':
@@ -84,8 +81,8 @@ if __name__ == '__main__':
     is_print = True
 
     env_reward = [0.8] + [0.9]
-    with open('simulation_T_10000_s_200.pkl', 'rb') as file:
-        # with open('simulation.pkl', 'rb') as file:
+    # env_reward = np.linspace(0.1, 0.9, 9)
+    with open('simulation_T_10000_s_2000_test3_MC_1000_p_20.pkl', 'rb') as file:
         records = pickle.load(file)
         file.close()
 
@@ -95,7 +92,7 @@ if __name__ == '__main__':
                           {'model': Uniform,
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
-    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+Riemann+Approx']
+    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTSRiemann+Approx']
     exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
     filename = 'evaluation' + '_T_' + str(T_timespan) + '_s_' + str(n_simulations) + '.pkl'
 

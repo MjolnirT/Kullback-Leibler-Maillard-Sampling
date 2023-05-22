@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # env_reward = [0.2] + [0.25]
     env_reward = [0.8] + [0.9]
     # env_reward = np.linspace(0.1, 0.9, 9)
-    with open('simulation_T_10000_s_200.pkl', 'rb') as file:
+    with open('simulation_T_10000_s_2000_test2_MC_1000_p_20.pkl', 'rb') as file:
         # with open('simulation.pkl', 'rb') as file:
         records = pickle.load(file)
         file.close()
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                           {'model': Uniform,
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
-    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+Riemann+Approx']
+    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
 
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
@@ -141,7 +141,3 @@ if __name__ == '__main__':
     generate_eval_plots(filename, env_reward, algorithms_name,
                         n_simulations, n_arms, n_algorithms, T_timespan,
                         ref_alg=None, exclude_alg=exclude_alg, is_print=True)
-
-    # with open('eval_reward_last.pkl', 'wb') as file:
-    #     pickle.dump(eval_reward_last, file)
-

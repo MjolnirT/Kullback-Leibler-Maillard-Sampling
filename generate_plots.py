@@ -106,9 +106,10 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
 
 
 if __name__ == '__main__':
-    filename = 'simulation_T_1000_s_1.pkl'
-    env_reward = [0.8] + [0.9]
-    algorithms_name = ['BernoulliTS', 'BernoulliTS+Riemann+Approx', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+']
+    filename = 'simulation_T_10000_s_200_test3_MC_1000_p_20.pkl'
+    # env_reward = [0.8] + [0.9]
+    env_reward = np.linspace(0.1, 0.9, 9)
+    algorithms_name = ['BernoulliTS', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     ref_alg = ["MS", 'BernoulliTS']
-    exclude_alg = ['KLMS+JefferysPrior','MS+']
+    exclude_alg = ['KLMS+JefferysPrior', 'MS', 'MS+']
     generate_plots(filename, env_reward, algorithms_name, ref_alg, exclude_alg)

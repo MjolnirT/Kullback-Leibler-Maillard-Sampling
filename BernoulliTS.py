@@ -5,7 +5,7 @@ from utility import log_remove_inf
 
 
 class BernoulliTS(Base):
-    def __init__(self, n_arms, n_rounds, explore_weight=1):
+    def __init__(self, n_arms, n_rounds, explore_weight=1, simulation_rounds=1000):
         super().__init__(n_arms, n_rounds, explore_weight)
 
         # initialize parameters for the beta distribution
@@ -19,6 +19,7 @@ class BernoulliTS(Base):
 
         # initialize the probability of each arm for offline evaluation
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
+        self.simulation_rounds = simulation_rounds
 
     def select_arm(self):
         theta_samples = [np.random.beta(self.alpha[i], self.beta[i]) for i in range(self.n_arms)]
@@ -33,11 +34,10 @@ class BernoulliTS(Base):
 
     def get_arm_prob(self):
         # running a Monte Carlo simulation to get the probability of each arm
-        simulation_rounds = 1000
-        theta_samples = np.random.beta(self.alpha, self.beta, size=(simulation_rounds, self.n_arms))
+        theta_samples = np.random.beta(self.alpha, self.beta, size=(self.simulation_rounds, self.n_arms))
         arm_counts = np.argmax(theta_samples, axis=1)
         counts = np.bincount(arm_counts, minlength=self.n_arms)
-        self.prob_arm = counts / simulation_rounds
+        self.prob_arm = counts / self.simulation_rounds
         return self.prob_arm
 
 
@@ -45,10 +45,9 @@ class simuBernoulliTS(BernoulliTS):
     def get_arm_prob(self):
         # running a Monte Carlo simulation to calculate the integral based on
         # "Simple Bayesian Algorithms for Best Arm Identification" by Daniel Russo
-        simulation_points = 20
-        log_pdf_sample = np.zeros(shape=[self.n_arms, simulation_points])
-        log_cdf_sample = np.zeros(shape=[self.n_arms, simulation_points])
-        sample = np.linspace(0, 1, simulation_points+2)[1:-1].reshape(1,-1)
+        log_pdf_sample = np.zeros(shape=[self.n_arms, self.simulation_rounds])
+        log_cdf_sample = np.zeros(shape=[self.n_arms, self.simulation_rounds])
+        sample = np.linspace(0, 1, self.simulation_rounds+2)[1:-1].reshape(1,-1)
         for i in range(self.n_arms):
 
             log_pdf_sample[i] = log_remove_inf(stats.beta.pdf(sample, self.alpha[i], self.beta[i]))

@@ -41,9 +41,9 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
         ax1.plot(range(1, T_timespan + 1), average_regret[idx_alg, :], color=cmap(idx_alg), label=label[idx_alg])
 
         # Add confidence interval
-        if add_ci is True:
+        if add_ci is True and ref_alg is not None:
             if label[idx_alg] in ref_alg:
-                print("Adding CI to ", label[idx_alg])
+                print("Adding CI to", label[idx_alg])
                 # calculate the confidence interval
                 confidence_level = ci
                 lower_bound = np.quantile(regrets, (1 - confidence_level) / 2, axis=0)
@@ -183,7 +183,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
             continue
         alg_reward = data[:, idx_alg]
         finite_values = alg_reward[np.isfinite(alg_reward)]
-        plt.hist(finite_values, bins=40, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
+        plt.hist(finite_values, bins=20, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
 
     if oracle is not None:
         plt.axvline(x=oracle, color='black', linestyle='--', label='Oracle')
@@ -220,6 +220,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
+    plt.xlim(0, 3)
+    plt.ylim(0, 10)
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
