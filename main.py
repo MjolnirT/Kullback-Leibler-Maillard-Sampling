@@ -1,7 +1,7 @@
 from SearchOptConfig import SearchOptConfig
 from generate_plots import generate_plots
 from utility import *
-from BernoulliTS import BernoulliTS
+from BernoulliTS import BernoulliTS, simuBernoulliTS
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from MS import MS, MSPlus
 from simulation import simulate_single_simulation
@@ -12,9 +12,9 @@ import time
 if __name__ == '__main__':
     start_time = time.time()
     print_flag = True
-    # env_reward = np.linspace(0.1, 0.9, 9)
+    env_reward = np.linspace(0.1, 0.9, 9)
 
-    env_reward = [0.8] + [0.9]
+    # env_reward = [0.8] + [0.9]
 
     # to pick the best configuration for MS+, doing a grid search from 100 simulations
     opt_config = SearchOptConfig(env_reward, n_arms=len(env_reward), n_rounds=100)
@@ -23,9 +23,9 @@ if __name__ == '__main__':
 
     # set algorithms and their parameters
     variance = float(1 / 4)
-    T_timespan = 1000
+    T_timespan = 10000
     n_arms = len(env_reward)
-    n_simulations = 20
+    n_simulations = 2000
 
     algorithms = {'BernoulliTS':
                       {'model': BernoulliTS,
@@ -43,11 +43,18 @@ if __name__ == '__main__':
                   'MS+':
                       {'model': MSPlus,
                        'params': {"n_arms": n_arms, "n_rounds": T_timespan,
-                                  "variance": variance, "B": opt_config[0], "C": opt_config[1], "D": opt_config[2]}}}
+                                  "variance": variance, "B": opt_config[0], "C": opt_config[1], "D": opt_config[2]}},
+                  'BernoulliTS+Riemann+Approx':
+                      {'model': simuBernoulliTS,
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     algorithms_name = list(algorithms.keys())
 
+    with open('simulation_T_10000_s_200.pkl', 'rb') as file:
+        # with open('simulation.pkl', 'rb') as file:
+        results = pickle.load(file)
+
     # parallel simulation process
-    # Use a maximum of 24 processes or the available CPU threads, whichever is smaller
+    # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
     num_processes = min(20, cpu_count())
     pool = Pool(processes=num_processes)
 
@@ -72,5 +79,8 @@ if __name__ == '__main__':
 
     # print out execution time
     message(f'time elapsed {time.time()-start_time}', print_flag)
-    generate_plots(filename, env_reward, algorithms_name, ref_alg='BernoulliTS')
+    generate_plots(filename, env_reward, algorithms_name,
+                   ref_alg='BernoulliTS',
+                   exclude_alg=['BernoulliTS', 'KL-MS+JefferysPrior', 'MS', 'MS+'])
     message(f'time elapsed {time.time()-start_time}', print_flag)
+    message(f'filename: {filename}', print_flag)
