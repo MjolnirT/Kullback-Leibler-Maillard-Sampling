@@ -4,6 +4,7 @@ import numpy as np
 def simulate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
     rewards = []
     selected_arms = []
+    # using pseudo reward to calculate the regret
     best_reward = np.max(env_reward) * np.ones(n_rounds)
     arm_probs = np.zeros(shape=[n_rounds, n_arms])
 
