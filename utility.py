@@ -169,7 +169,7 @@ def plot_histogram_with_bins(arm_probs, bin_width=0.2, x_label=None, y_label=Non
 
 
 def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=None,
-                         save_path=None, add_density=False, oracle=None, exclude_alg=None,
+                         save_path=None, add_density=False, add_mean=True, oracle=None, exclude_alg=None,
                          figure_size=(8, 6), font_size=12):
     fig = plt.figure(figsize=figure_size)
     n_simulations, num_algorithm = data.shape
@@ -187,14 +187,18 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
 
     if oracle is not None:
         plt.axvline(x=oracle, color='black', linestyle='--', label='Oracle')
+        plt.text(oracle, 0.1, 'Oracle', rotation=90, fontsize=font_size)
 
-    if add_density:
-        # Iterate over the columns of the data and plot the density function for each
-        for idx_alg in range(num_algorithm):
-            if exclude_alg is not None and label[idx_alg] in exclude_alg:
-                continue
-            alg_reward = data[:, idx_alg]
-            finite_values = alg_reward[np.isfinite(alg_reward)]
+    # Iterate over the columns of the data
+    for idx_alg in range(num_algorithm):
+        if exclude_alg is not None and label[idx_alg] in exclude_alg:
+            continue
+
+        alg_reward = data[:, idx_alg]
+        finite_values = alg_reward[np.isfinite(alg_reward)]
+
+        # plot the density function for each
+        if add_density:
             # Fit a probability distribution to the column data
             dist = gaussian_kde(finite_values)
 
@@ -204,9 +208,12 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
 
             plt.plot(x, y, color=cmap(idx_alg), label=label[idx_alg])
 
+        # Add a vertical line at the mean of the data
+        if add_mean:
             plt.axvline(x=finite_values.mean(),
                         color=cmap(idx_alg), alpha=0.7, linestyle='--',
                         label=label[idx_alg])
+            plt.text(finite_values.mean(), 0.1, f'{label[idx_alg]} mean', rotation=90, fontsize=font_size)
 
     # Add a legend and labels to the plot
     plt.legend(fontsize=font_size)
@@ -230,15 +237,27 @@ def binomial_KL_divergence(a, b):
     if a == 0:
         a = np.finfo(float).eps
 
-    KL = a * np.log(a / b) + (1 - a) * np.log((1 - a) / (1 - b))
-    return KL
+    kl = a * np.log(a / b) + (1 - a) * np.log((1 - a) / (1 - b))
+    return kl
 
 
 def gaussian_KL_divergence(mu1, var1, mu2, var2):
-    KL = np.log(np.sqrt(var2) / np.sqrt(var1)) + (var1 + (mu1 - mu2) ** 2) / (2 * var2) - 0.5
-    return KL
+    kl = np.log(np.sqrt(var2) / np.sqrt(var1)) + (var1 + (mu1 - mu2) ** 2) / (2 * var2) - 0.5
+    return kl
 
 
 def message(print_string, print_flag=False):
     if print_flag:
         print(print_string)
+
+
+def log_remove_inf(vec):
+    with np.errstate(divide='ignore'):
+        log_vec = np.log(vec)
+    if np.isinf(log_vec).any():
+        message("number of imputation: " + str(len(~np.isfinite(log_vec))))
+        log_step = log_vec[np.isfinite(log_vec)][0] - log_vec[np.isfinite(log_vec)][1]
+        log_vec[~np.isfinite(log_vec)] = log_vec[np.isfinite(log_vec)][0] + np.arange(1, np.sum(
+            ~np.isfinite(log_vec)) + 1) * log_step
+
+    return log_vec

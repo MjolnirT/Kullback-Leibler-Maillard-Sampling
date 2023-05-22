@@ -4,17 +4,17 @@ import pickle
 
 def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_alg=None):
     with open(filename, 'rb') as file:
-        results = pickle.load(file)
+        data = pickle.load(file)
 
-    n_simulations = len(results)
+    n_simulations = len(data)
 
-    n_algorithms, T_timespan, n_arms = results[0][2].shape
+    n_algorithms, T_timespan, n_arms = data[0][2].shape
 
     select_arms = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
     regrets = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
     arm_probs = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
     evl_rewards = np.zeros(shape=[n_simulations, n_algorithms])
-    for i, result in enumerate(results):
+    for i, result in enumerate(data):
         select_arms[i], regrets[i], arm_probs[i], evl_rewards[i] = result
 
     # parameters for plotting
@@ -82,14 +82,14 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                exclude_alg=exclude_alg)
 
     # plot arm probability in histogram
-    plot_histogram_with_bins(arm_probs_last_round,
-                             bin_width=0.1,
-                             label=algorithms_name,
-                             x_label='arm index',
-                             y_label='average arm probability',
-                             title='Arm Probability Histogram Comparison' + experiment_param,
-                             save_path='./figures/arm_prob_hist.png',
-                             exclude_alg=exclude_alg)
+    # plot_histogram_with_bins(arm_probs_last_round,
+    #                          bin_width=0.1,
+    #                          label=algorithms_name,
+    #                          x_label='arm index',
+    #                          y_label='average arm probability',
+    #                          title='Arm Probability Histogram Comparison' + experiment_param,
+    #                          save_path='./figures/arm_prob_hist.png',
+    #                          exclude_alg=exclude_alg)
 
     # plot the optimal arm probability vs time step
     arm_best = arm_probs[:, :, :, -1]
@@ -106,9 +106,9 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
 
 
 if __name__ == '__main__':
-    filename = 'simulation_T_10000_s_2000_test2.pkl'
+    filename = 'simulation_T_1000_s_1.pkl'
     env_reward = [0.8] + [0.9]
-    algorithms_name = ['BernoulliTS', 'KLMS', 'KLMS+JefferysPrior', 'MS', 'MS+']
+    algorithms_name = ['BernoulliTS', 'BernoulliTS+Riemann+Approx', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+']
     ref_alg = ["MS", 'BernoulliTS']
     exclude_alg = ['KLMS+JefferysPrior','MS+']
     generate_plots(filename, env_reward, algorithms_name, ref_alg, exclude_alg)
