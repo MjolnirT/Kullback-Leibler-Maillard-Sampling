@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 from Base import Uniform
-from utility import plot_hist_overlapped, message, plot_lines, get_filename
+from utility import plot_hist_overlapped, message, plot_lines
 
 
 def generate_eval_plots(filename, env_reward, algorithms_name,
@@ -62,7 +62,7 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
     TS_approx_idx = 5
     generate_metric(eval_reward_last[:, TS_idx], oracle, is_print, algorithms_name[TS_idx])
     generate_metric(eval_reward_last[:, KL_MS_idx], oracle, is_print, algorithms_name[KL_MS_idx])
-    # generate_metric(eval_reward_last[:, TS_approx_idx], oracle, is_print, algorithms_name[TS_approx_idx])
+    generate_metric(eval_reward_last[:, TS_approx_idx], oracle, is_print, algorithms_name[TS_approx_idx])
 
 
 def generate_metric(reward, oracle, is_print, algorithm_name):
@@ -80,8 +80,8 @@ if __name__ == '__main__':
     start_time = time.time()
     is_print = True
 
-    env_reward = [0.8] + [0.9]
-    # env_reward = np.linspace(0.1, 0.9, 9)
+    # env_reward = [0.8] + [0.9]
+    env_reward = np.linspace(0.1, 0.9, 9)
     with open('simulation_T_10000_s_2000_test2_MC_1000_p_20_interpolation_False.pkl', 'rb') as file:
         records = pickle.load(file)
     file.close()
@@ -93,9 +93,9 @@ if __name__ == '__main__':
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
     algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
 
-    filename = 'evaluation_T_10000_s_2000_test2_MC_1000_p_20_interpolation_True.pkl'
+    filename = 'evaluation_T_10000_s_200_test3_MC_1000_p_20_interpolation_True.pkl'
     generate_eval_plots(filename, env_reward, algorithms_name,
                         n_simulations, n_arms, n_algorithms, T_timespan,
                         ref_alg=None, exclude_alg=exclude_alg, is_print=is_print)

@@ -71,7 +71,7 @@ def evaluate_single_simulation(sim_idx, counter, lock,
             arm_prob = arm_probs[alg_idx, t, chosen_arm]
             if algorithms_name[alg_idx] == 'BernoulliTS':
                 if arm_probs[alg_idx, t, chosen_arm] == 0:
-                    arm_prob = 1 / simulations_per_round * 0.5
+                    arm_prob = 1 / simulations_per_round * 0.25
 
             ipw_reward[alg_idx, t, chosen_arm] = \
                 rewards[alg_idx, t] / arm_prob
@@ -104,13 +104,13 @@ if __name__ == '__main__':
     # env_reward = [0,2, 0,25]
     # test_case = 1
 
-    env_reward = [0.8] + [0.9]
-    test_case = 2
+    # env_reward = [0.8] + [0.9]
+    # test_case = 2
 
-    # env_reward = np.linspace(0.1, 0.9, 9)
-    # test_case = 3
+    env_reward = np.linspace(0.1, 0.9, 9)
+    test_case = 3
 
-    with open('simulation_T_10000_s_2000_test2_MC_1000_p_20_interpolation_False.pkl', 'rb') as file:
+    with open('simulation_T_10000_s_2000_test3_MC_1000_p_1000_interpolation_False.pkl', 'rb') as file:
         records = pickle.load(file)
     file.close()
 
@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     simulations_per_round = 1000
     split_points = 20
-    is_interpolation = True
+    is_interpolation = False
     filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, split_points, is_interpolation,
                             is_evaluation=True)

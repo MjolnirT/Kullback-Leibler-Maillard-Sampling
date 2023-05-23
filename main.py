@@ -15,11 +15,11 @@ if __name__ == '__main__':
     # env_reward = [0,2, 0,25]
     # test_case = 1
 
-    # env_reward = [0.8] + [0.9]
-    # test_case = 2
+    env_reward = [0.8] + [0.9]
+    test_case = 2
 
-    env_reward = np.linspace(0.1, 0.9, 9)
-    test_case = 3
+    # env_reward = np.linspace(0.1, 0.9, 9)
+    # test_case = 3
     # to pick the best configuration for MS+, doing a grid search from 100 simulations
     opt_config = SearchOptConfig(env_reward, n_arms=len(env_reward), n_rounds=100)
 
@@ -30,9 +30,9 @@ if __name__ == '__main__':
     T_timespan = 10000
     n_arms = len(env_reward)
     n_simulations = 2000
-    simulations_per_round = 1000
-    split_points = 20
-    is_interpolation = True
+    simulations_per_round = 100000
+    split_points = 100000
+    is_interpolation = False
     algorithms = {'BernoulliTS':
                       {'model': BernoulliTS,
                        'params': {"n_arms": n_arms, "n_rounds": T_timespan,

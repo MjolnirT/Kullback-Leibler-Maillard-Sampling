@@ -221,7 +221,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
-    # plt.xlim(0, 1.5)
+    plt.xlim(0, 2)
     # plt.ylim(0, 6)
 
     if save_path:

@@ -1,7 +1,6 @@
 import numpy as np
 from Base import Base
 from scipy import stats
-from utility import log_remove_inf
 
 
 class BernoulliTS(Base):
@@ -51,16 +50,15 @@ class simuBernoulliTS(BernoulliTS):
     def get_arm_prob(self):
         # running a Monte Carlo simulation to calculate the integral based on
         # "Simple Bayesian Algorithms for Best Arm Identification" by Daniel Russo
-        log_pdf_sample = np.zeros(shape=[self.n_arms, self.split_points])
-        log_cdf_sample = np.zeros(shape=[self.n_arms, self.split_points])
-        sample = np.linspace(0, 1, self.split_points + 2)[1:-1].reshape(1, -1)
-        for i in range(self.n_arms):
-            log_pdf_sample[i] = log_remove_inf(stats.beta.pdf(sample, self.alpha[i], self.beta[i]))
-            log_cdf_sample[i] = log_remove_inf(stats.beta.cdf(sample, self.alpha[i], self.beta[i]))
-
-        log_F = np.sum(log_cdf_sample, axis=0)
-        log_ratio = log_pdf_sample - log_cdf_sample + log_F
-        ratio = np.exp(log_ratio)
-        arm_prod = np.sum(ratio, axis=1)
-        arm_prod = arm_prod / np.sum(arm_prod)
-        return arm_prod
+        sample = np.linspace(0, 1, self.split_points + 2)[1:-1].reshape(-1, 1)
+        sample = np.repeat(sample, self.n_arms, axis=1)
+        with np.errstate(divide='ignore'):
+            log_pdf_sample = np.log(stats.beta.pdf(sample, self.alpha, self.beta))
+            log_cdf_sample = np.log(stats.beta.cdf(sample, self.alpha, self.beta))
+            assert log_pdf_sample.shape == (self.split_points, self.n_arms)
+            assert log_cdf_sample.shape == (self.split_points, self.n_arms)
+            for k in range(self.n_arms):
+                log_ratio = log_cdf_sample[:, np.arange(log_cdf_sample.shape[1]) != k].sum(axis=1)
+                self.prob_arm[k] = np.exp(log_ratio + log_pdf_sample[:, k]).sum()
+        self.prob_arm = self.prob_arm / self.split_points
+        return self.prob_arm
