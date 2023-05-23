@@ -183,7 +183,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
             continue
         alg_reward = data[:, idx_alg]
         finite_values = alg_reward[np.isfinite(alg_reward)]
-        plt.hist(finite_values, bins=20, color=cmap(idx_alg), alpha=0.5, density=True, label=label[idx_alg])
+        # plt.hist(x=finite_values, weights=np.ones(len(alg_reward))/len(alg_reward), bins=40, color=cmap(idx_alg), alpha=0.5, label=label[idx_alg])
+        plt.hist(x=finite_values, bins=40, color=cmap(idx_alg), alpha=0.5, label=label[idx_alg])
 
     if oracle is not None:
         plt.axvline(x=oracle, color='black', linestyle='--', label='Oracle')
@@ -220,8 +221,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
-    plt.xlim(0, 3)
-    plt.ylim(0, 10)
+    # plt.xlim(0, 1.5)
+    # plt.ylim(0, 6)
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
@@ -253,13 +254,33 @@ def message(print_string, print_flag=False):
         print(print_string)
 
 
-def log_remove_inf(vec):
+def log_remove_inf(vec, is_interpolation=False):
     with np.errstate(divide='ignore'):
         log_vec = np.log(vec)
-    if np.isinf(log_vec).any():
+    if np.isinf(log_vec).any() and is_interpolation:
         message("number of imputation: " + str(len(~np.isfinite(log_vec))))
         log_step = log_vec[np.isfinite(log_vec)][0] - log_vec[np.isfinite(log_vec)][1]
         log_vec[~np.isfinite(log_vec)] = log_vec[np.isfinite(log_vec)][0] + np.arange(1, np.sum(
             ~np.isfinite(log_vec)) + 1) * log_step
 
     return log_vec
+
+
+def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
+                 split_points, is_interpolation,
+                 is_simulation=False, is_evaluation=False):
+    filename = None
+    if is_simulation:
+        filename = 'simulation'
+    if is_evaluation:
+        filename = 'evaluation'
+
+    filename = filename + '_T_' + str(T_timespan) + \
+               '_s_' + str(n_simulations) + \
+               '_test' + str(test_case) + \
+               '_MC_' + str(simulations_per_round) + \
+               '_p_' + str(split_points) + \
+               '_interpolation_' + str(is_interpolation) + \
+               '.pkl'
+
+    return filename

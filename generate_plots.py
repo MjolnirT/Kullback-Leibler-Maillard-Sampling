@@ -5,6 +5,7 @@ import pickle
 def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_alg=None):
     with open(filename, 'rb') as file:
         data = pickle.load(file)
+    file.close()
 
     n_simulations = len(data)
 
@@ -106,10 +107,10 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
 
 
 if __name__ == '__main__':
-    filename = 'simulation_T_10000_s_200_test3_MC_1000_p_20.pkl'
-    # env_reward = [0.8] + [0.9]
-    env_reward = np.linspace(0.1, 0.9, 9)
+    filename = 'simulation_T_10000_s_2000_test3_MC_1000_p_20_interpolation_True.pkl.pkl'
+    env_reward = [0.8] + [0.9]
+    # env_reward = np.linspace(0.1, 0.9, 9)
     algorithms_name = ['BernoulliTS', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     ref_alg = ["MS", 'BernoulliTS']
-    exclude_alg = ['KLMS+JefferysPrior', 'MS', 'MS+']
+    exclude_alg = ['KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     generate_plots(filename, env_reward, algorithms_name, ref_alg, exclude_alg)

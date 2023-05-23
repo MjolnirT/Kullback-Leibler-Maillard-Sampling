@@ -31,10 +31,12 @@ if __name__ == '__main__':
     n_arms = len(env_reward)
     n_simulations = 2000
     simulations_per_round = 1000
-    simulation_points = 20
+    split_points = 20
+    is_interpolation = True
     algorithms = {'BernoulliTS':
                       {'model': BernoulliTS,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan, "simulation_rounds": simulations_per_round}},
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
+                                  "simulation_rounds": simulations_per_round}},
                   'KL-MS':
                       {'model': KLMS,
                        'params': {"n_arms": n_arms, "n_rounds": T_timespan}},
@@ -51,7 +53,8 @@ if __name__ == '__main__':
                                   "variance": variance, "B": opt_config[0], "C": opt_config[1], "D": opt_config[2]}},
                   'BernoulliTS+RiemannApprox':
                       {'model': simuBernoulliTS,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan, "simulation_rounds": simulation_points}}
+                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
+                                  "split_points": split_points, "is_interpolation": is_interpolation}}
                   }
     algorithms_name = list(algorithms.keys())
 
@@ -75,14 +78,12 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
-    filename = 'simulation' + '_T_' + str(T_timespan) + \
-               '_s_' + str(n_simulations) + \
-               '_test' + str(test_case) + \
-               '_MC_' + str(simulations_per_round) + \
-               '_p_' + str(simulation_points) + \
-               '.pkl'
+    filename = get_filename(T_timespan, n_simulations, test_case,
+                            simulations_per_round, split_points, is_interpolation,
+                            is_simulation=True)
     with open(filename, 'wb') as file:
         pickle.dump(results, file)
+    file.close()
 
     # print out execution time
     message(f'time elapsed {time.time() - start_time}', print_flag)

@@ -49,7 +49,7 @@ def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_pro
 
 def evaluate_single_simulation(sim_idx, counter, lock,
                                records, eval_algorithm, eval_algorithm_name,
-                               n_simulations, n_algorithms, T_timespan, n_arms, env_reward):
+                               n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward):
     '''
     :param eval_algorithm: dictionary. Store the algorithm and its corresponding model and parameters needed to be evaluated
     :param eval_algorithm_name: list of string. Store the name of the algorithm
@@ -62,23 +62,29 @@ def evaluate_single_simulation(sim_idx, counter, lock,
     select_arms, regrets, arm_probs, expect_rewards = records
     rewards = np.max(env_reward) - regrets
 
+    simulations_per_round = 1000
+
     ipw_reward = np.zeros(shape=[n_algorithms, T_timespan, n_arms])
     for alg_idx in range(n_algorithms):
         for t in range(n_arms, T_timespan):
             chosen_arm = select_arms[alg_idx, t].astype(int)
+            arm_prob = arm_probs[alg_idx, t, chosen_arm]
+            if algorithms_name[alg_idx] == 'BernoulliTS':
+                if arm_probs[alg_idx, t, chosen_arm] == 0:
+                    arm_prob = 1 / simulations_per_round * 0.5
+
             ipw_reward[alg_idx, t, chosen_arm] = \
-                rewards[alg_idx, t] / \
-                arm_probs[alg_idx, t, chosen_arm]
+                rewards[alg_idx, t] / arm_prob
 
     for alg_idx in range(n_algorithms):
         # model = algorithm(*args)
         model = eval_algorithm[eval_algorithm_name]['model'](**eval_algorithm[eval_algorithm_name]['params'])
         model.set_name(eval_algorithm_name)
-        selected_arms, rewards, best_reward, arm_prob = evaluate_one_alg(ipw_reward[alg_idx],
-                                                                         n_arms,
-                                                                         T_timespan,
-                                                                         model,
-                                                                         output_all_arm_prob=True)
+        selected_arms, rewards, _, _ = evaluate_one_alg(ipw_reward[alg_idx],
+                                                        n_arms,
+                                                        T_timespan,
+                                                        model,
+                                                        output_all_arm_prob=True)
 
         selected_arm_all[alg_idx] = selected_arms
         rewards_all[alg_idx] = np.array(rewards)
@@ -94,13 +100,19 @@ def evaluate_single_simulation(sim_idx, counter, lock,
 if __name__ == '__main__':
     is_print = True
     start_time = time.time()
-    # env_reward = [0.2] + [0.25]
+
+    # env_reward = [0,2, 0,25]
+    # test_case = 1
+
     env_reward = [0.8] + [0.9]
+    test_case = 2
+
     # env_reward = np.linspace(0.1, 0.9, 9)
-    with open('simulation_T_10000_s_2000_test2_MC_1000_p_20.pkl', 'rb') as file:
-        # with open('simulation.pkl', 'rb') as file:
+    # test_case = 3
+
+    with open('simulation_T_10000_s_2000_test2_MC_1000_p_20_interpolation_False.pkl', 'rb') as file:
         records = pickle.load(file)
-        file.close()
+    file.close()
 
     n_simulations = len(records)
     n_algorithms, T_timespan, n_arms = records[0][2].shape
@@ -124,7 +136,7 @@ if __name__ == '__main__':
     eval_result = pool.starmap(evaluate_single_simulation,
                                [(i, counter, lock,
                                  records[i], eval_algorithm, eval_algorithms_name,
-                                 n_simulations, n_algorithms, T_timespan, n_arms, env_reward)
+                                 n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward)
                                 for i in range(n_simulations)])
 
     print(f"All {n_simulations} evaluations completed.")
@@ -132,9 +144,15 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
-    filename = 'evaluation' + '_T_' + str(T_timespan) + '_s_' + str(n_simulations) + '.pkl'
+    simulations_per_round = 1000
+    split_points = 20
+    is_interpolation = True
+    filename = get_filename(T_timespan, n_simulations, test_case,
+                            simulations_per_round, split_points, is_interpolation,
+                            is_evaluation=True)
     with open(filename, 'wb') as file:
         pickle.dump(eval_result, file)
+    file.close()
 
     message(f"Start evaluating the algorithms", is_print)
 

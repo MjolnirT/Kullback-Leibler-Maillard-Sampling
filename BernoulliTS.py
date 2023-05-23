@@ -42,16 +42,22 @@ class BernoulliTS(Base):
 
 
 class simuBernoulliTS(BernoulliTS):
+    def __init__(self, n_arms, n_rounds, explore_weight=1,
+                 simulation_rounds=None, is_interpolation=True, split_points=20):
+        super().__init__(n_arms, n_rounds, explore_weight, simulation_rounds)
+        self.is_interpolation = is_interpolation
+        self.split_points = split_points
+
     def get_arm_prob(self):
         # running a Monte Carlo simulation to calculate the integral based on
         # "Simple Bayesian Algorithms for Best Arm Identification" by Daniel Russo
-        log_pdf_sample = np.zeros(shape=[self.n_arms, self.simulation_rounds])
-        log_cdf_sample = np.zeros(shape=[self.n_arms, self.simulation_rounds])
-        sample = np.linspace(0, 1, self.simulation_rounds+2)[1:-1].reshape(1,-1)
+        log_pdf_sample = np.zeros(shape=[self.n_arms, self.split_points])
+        log_cdf_sample = np.zeros(shape=[self.n_arms, self.split_points])
+        sample = np.linspace(0, 1, self.split_points + 2)[1:-1].reshape(1, -1)
         for i in range(self.n_arms):
-
             log_pdf_sample[i] = log_remove_inf(stats.beta.pdf(sample, self.alpha[i], self.beta[i]))
             log_cdf_sample[i] = log_remove_inf(stats.beta.cdf(sample, self.alpha[i], self.beta[i]))
+
         log_F = np.sum(log_cdf_sample, axis=0)
         log_ratio = log_pdf_sample - log_cdf_sample + log_F
         ratio = np.exp(log_ratio)
