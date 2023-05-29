@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 
@@ -46,8 +48,10 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
     arm_probs_all = np.zeros(shape=[len(algorithms), T_timespan, n_arms])
     expected_rewards_all = np.zeros(shape=[len(algorithms)])
 
+
     for alg_idx, algorithm in enumerate(algorithms):
         # model = algorithm(*args)
+        # start_time = time.time()
         model = algorithms[algorithm]['model'](**algorithms[algorithm]['params'])
         model.set_name(algorithms_name[alg_idx])
         selected_arms, rewards, best_reward, arm_prob = simulate_one_alg(env_reward,
@@ -60,6 +64,8 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
         regrets_all[alg_idx] = np.array(best_reward) - np.array(rewards)
         arm_probs_all[alg_idx] = arm_prob
         expected_rewards_all[alg_idx] = np.array(env_reward).dot(arm_probs_all[alg_idx, -1, :])
+
+        # print(f"Simulation {simulation_idx} done, {algorithms_name[alg_idx]} completed, time elapsed {time.time()- start_time}.")
 
     # After the simulation is done, increment the counter.
     with lock:

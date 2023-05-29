@@ -221,7 +221,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
-    plt.xlim(0, 2)
+    plt.xlim(0.50, 1.50)
+    # plt.xlim(0.1, 0.5)
     # plt.ylim(0, 6)
 
     if save_path:
@@ -268,19 +269,24 @@ def log_remove_inf(vec, is_interpolation=False):
 
 def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
                  split_points, is_interpolation,
-                 is_simulation=False, is_evaluation=False):
+                 is_simulation=False, is_evaluation=False, is_configuration=False):
     filename = None
     if is_simulation:
         filename = 'simulation'
     if is_evaluation:
         filename = 'evaluation'
+    if is_configuration:
+        filename = 'config'
 
     filename = filename + '_T_' + str(T_timespan) + \
                '_s_' + str(n_simulations) + \
                '_test' + str(test_case) + \
                '_MC_' + str(simulations_per_round) + \
                '_p_' + str(split_points) + \
-               '_interpolation_' + str(is_interpolation) + \
-               '.pkl'
+               '_interpolation_' + str(is_interpolation)
+    if is_configuration:
+        filename = filename + '.json'
+    else:
+        filename = filename + '.pkl'
 
     return filename

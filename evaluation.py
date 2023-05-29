@@ -64,14 +64,16 @@ def evaluate_single_simulation(sim_idx, counter, lock,
 
     simulations_per_round = 1000
 
+    padding = 1 / simulations_per_round * 0.5
+
     ipw_reward = np.zeros(shape=[n_algorithms, T_timespan, n_arms])
     for alg_idx in range(n_algorithms):
         for t in range(n_arms, T_timespan):
             chosen_arm = select_arms[alg_idx, t].astype(int)
             arm_prob = arm_probs[alg_idx, t, chosen_arm]
             if algorithms_name[alg_idx] == 'BernoulliTS':
-                if arm_probs[alg_idx, t, chosen_arm] == 0:
-                    arm_prob = 1 / simulations_per_round * 0.25
+                if arm_probs[alg_idx, t, chosen_arm] < padding:
+                    arm_prob = padding
 
             ipw_reward[alg_idx, t, chosen_arm] = \
                 rewards[alg_idx, t] / arm_prob
@@ -101,16 +103,19 @@ if __name__ == '__main__':
     is_print = True
     start_time = time.time()
 
-    # env_reward = [0,2, 0,25]
+    # env_reward = [0.2, 0.25]
     # test_case = 1
 
-    # env_reward = [0.8] + [0.9]
-    # test_case = 2
+    env_reward = [0.8] + [0.9]
+    test_case = 2
 
-    env_reward = np.linspace(0.1, 0.9, 9)
-    test_case = 3
+    # env_reward = np.linspace(0.1, 0.9, 9)
+    # test_case = 3
 
-    with open('simulation_T_10000_s_2000_test3_MC_1000_p_1000_interpolation_False.pkl', 'rb') as file:
+    # env_reward = [0.8, 0.9]
+    # test_case = 4
+
+    with open('simulation_T_10000_s_2000_test2_MC_10000_p_10000_interpolation_False.pkl', 'rb') as file:
         records = pickle.load(file)
     file.close()
 
@@ -120,7 +125,9 @@ if __name__ == '__main__':
                           {'model': Uniform,
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
-    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
+    # algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+    # exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
 
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
@@ -144,8 +151,8 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
-    simulations_per_round = 1000
-    split_points = 20
+    simulations_per_round = 10000
+    split_points = 10000
     is_interpolation = False
     filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, split_points, is_interpolation,
