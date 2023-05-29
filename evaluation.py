@@ -5,6 +5,8 @@ from Base import Uniform
 from utility import *
 import time
 
+from utility_io import get_filename
+
 
 def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
     '''

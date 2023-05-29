@@ -42,9 +42,8 @@ class BernoulliTS(Base):
 
 class simuBernoulliTS(BernoulliTS):
     def __init__(self, n_arms, n_rounds, explore_weight=1,
-                 simulation_rounds=None, is_interpolation=True, split_points=20):
+                 simulation_rounds=None, split_points=20):
         super().__init__(n_arms, n_rounds, explore_weight, simulation_rounds)
-        self.is_interpolation = is_interpolation
         self.split_points = split_points
 
     def get_arm_prob(self):

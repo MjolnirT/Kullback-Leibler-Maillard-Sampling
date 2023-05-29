@@ -1,4 +1,5 @@
-from SearchOptConfig import SearchOptConfig
+import json
+
 from generate_plots import generate_plots
 from utility import *
 from BernoulliTS import BernoulliTS, simuBernoulliTS
@@ -9,58 +10,29 @@ from multiprocessing import Pool, cpu_count, Manager
 import pickle
 import time
 
+from utility_io import get_filename, read_algorithms
+
 if __name__ == '__main__':
     start_time = time.time()
+
     print_flag = True
-    # env_reward = [0,2, 0,25]
-    # test_case = 1
 
-    env_reward = [0.8] + [0.9]
-    test_case = 2
+    path = 'config/'
+    filename = path + 'config.json'
+    environment, algorithms = read_algorithms(filename, print_flag=True)
 
-    # env_reward = np.linspace(0.1, 0.9, 9)
-    # test_case = 3
-    # to pick the best configuration for MS+, doing a grid search from 100 simulations
-    opt_config = SearchOptConfig(env_reward, n_arms=len(env_reward), n_rounds=100)
+    n_simulations = environment['n_simulations']
+    env_reward = environment['reward']
+    test_case = environment['test case']
+    T_timespan = environment["base"]["n_rounds"]
 
-    message(f'reward_probabilities: {env_reward}', print_flag=True)
-
-    # set algorithms and their parameters
-    variance = float(1 / 4)
-    T_timespan = 10000
-    n_arms = len(env_reward)
-    n_simulations = 2000
-    simulations_per_round = 100000
-    split_points = 100000
-    is_interpolation = False
-    algorithms = {'BernoulliTS':
-                      {'model': BernoulliTS,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
-                                  "simulation_rounds": simulations_per_round}},
-                  'KL-MS':
-                      {'model': KLMS,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan}},
-                  'KL-MS+JefferysPrior':
-                      {'model': KLMSJefferysPrior,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan}},
-                  'MS':
-                      {'model': MS,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
-                                  "variance": variance}},
-                  'MS+':
-                      {'model': MSPlus,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
-                                  "variance": variance, "B": opt_config[0], "C": opt_config[1], "D": opt_config[2]}},
-                  'BernoulliTS+RiemannApprox':
-                      {'model': simuBernoulliTS,
-                       'params': {"n_arms": n_arms, "n_rounds": T_timespan,
-                                  "split_points": split_points, "is_interpolation": is_interpolation}}
-                  }
     algorithms_name = list(algorithms.keys())
 
     # parallel simulation process
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
+    message('--- Start parallel simulation process ---', print_flag=print_flag)
     num_processes = min(20, cpu_count())
+    message(f'Using CPUs: {num_processes}', print_flag=print_flag)
     pool = Pool(processes=num_processes)
 
     # Create a shared counter and a lock.
@@ -78,8 +50,10 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
+    simulations_per_round = "vary"
+    split_points = "vary"
     filename = get_filename(T_timespan, n_simulations, test_case,
-                            simulations_per_round, split_points, is_interpolation,
+                            simulations_per_round, split_points, is_interpolation=False,
                             is_simulation=True)
     with open(filename, 'wb') as file:
         pickle.dump(results, file)
@@ -87,8 +61,9 @@ if __name__ == '__main__':
 
     # print out execution time
     message(f'time elapsed {time.time() - start_time}', print_flag)
+    exclude_alg = ['BernoulliTS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
     generate_plots(filename, env_reward, algorithms_name,
                    ref_alg='BernoulliTS',
-                   exclude_alg=['BernoulliTS', 'KL-MS+JefferysPrior', 'MS', 'MS+'])
+                   exclude_alg=None)
     message(f'time elapsed {time.time() - start_time}', print_flag)
     message(f'filename: {filename}', print_flag)
