@@ -13,7 +13,7 @@ if __name__ == '__main__':
     print_flag = True
 
     path = 'config/'
-    filename = path + 'config.json'
+    filename = path + 'vary_KL_MS.json'
     environment, algorithms = read_algorithms(filename, print_flag=True)
 
     n_simulations = environment['n_simulations']
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     pool.join()
 
     simulations_per_round = "vary"
-    split_points = "vary"
+    split_points = "NA"
     filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, split_points, is_interpolation=False,
                             is_simulation=True)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     file.close()
 
     # print out execution time
-    message(f'time elapsed {time.time() - start_time}', print_flag)
+    message(f'Total time elapsed {time.time() - start_time}', print_flag)
     exclude_alg = ['BernoulliTS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
     generate_plots(filename, env_reward, algorithms_name,
                    ref_alg='BernoulliTS',

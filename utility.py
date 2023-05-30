@@ -155,7 +155,6 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
                         label=label[idx_alg])
             plt.text(finite_values.mean(), 0.1, f'{label[idx_alg]} mean', rotation=90, fontsize=font_size)
 
-    # Add a legend and labels to the plot
     plt.legend(fontsize=font_size)
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
@@ -166,7 +165,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
-    # Show the plot
+
     plt.show()
 
 
@@ -204,5 +203,3 @@ def log_remove_inf(vec, is_interpolation=False):
             ~np.isfinite(log_vec)) + 1) * log_step
 
     return log_vec
-
-

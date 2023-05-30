@@ -145,7 +145,6 @@ if __name__ == '__main__':
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
 
-
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
     num_processes = min(20, cpu_count())
     pool = Pool(processes=num_processes)
