@@ -1,3 +1,4 @@
+import json
 import pickle
 from multiprocessing import Pool, cpu_count, Manager
 from generate_eval_plots import generate_eval_plots
@@ -61,6 +62,7 @@ def evaluate_single_simulation(sim_idx, counter, lock,
     rewards_all = np.zeros(shape=[n_algorithms, T_timespan])
 
     # construct IPW reward
+    # select_arms, regrets, arm_probs, expect_rewards, time_cost = records
     select_arms, regrets, arm_probs, expect_rewards = records
     rewards = np.max(env_reward) - regrets
 
@@ -73,7 +75,7 @@ def evaluate_single_simulation(sim_idx, counter, lock,
         for t in range(n_arms, T_timespan):
             chosen_arm = select_arms[alg_idx, t].astype(int)
             arm_prob = arm_probs[alg_idx, t, chosen_arm]
-            if algorithms_name[alg_idx] == 'BernoulliTS':
+            if 'BernoulliTS' in algorithms_name[alg_idx]:
                 if arm_probs[alg_idx, t, chosen_arm] < padding:
                     arm_prob = padding
 
@@ -105,32 +107,44 @@ if __name__ == '__main__':
     is_print = True
     start_time = time.time()
 
-    # env_reward = [0.2, 0.25]
-    # test_case = 1
+    path = 'config/'
+    filename = path + '100_100_1K.json'
+    message(f"Read configuration from {filename}.", is_print)
+    with open(filename, 'r') as f:
+        config = json.load(f)
+    f.close()
 
-    env_reward = [0.8] + [0.9]
-    test_case = 2
+    environment = config["environment"]
+    env_reward = environment["reward"]
+    test_case = environment['test case']
+    n_simulations = environment['n_simulations']
 
-    # env_reward = np.linspace(0.1, 0.9, 9)
-    # test_case = 3
+    T_timespan = environment["base"]['n_rounds']
+    n_arms = environment["base"]['n_arms']
 
-    # env_reward = [0.8, 0.9]
-    # test_case = 4
+    n_algorithms = len(config['algorithms'])
+    algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
 
-    with open('simulation_T_10000_s_2000_test2_MC_10000_p_10000_interpolation_False.pkl', 'rb') as file:
+    # simulations_per_round = "vary"
+    simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
+    # split_points = "NA"
+    split_points = 100
+    is_interpolation = False
+
+    filename = get_filename(T_timespan, n_simulations, test_case,
+                            simulations_per_round, split_points, is_interpolation,
+                            is_simulation=True)
+    message(f'Read simulation results from {filename}.', is_print)
+    with open(filename, 'rb') as file:
         records = pickle.load(file)
     file.close()
 
-    n_simulations = len(records)
-    n_algorithms, T_timespan, n_arms = records[0][2].shape
     eval_algorithm = {'Uniform':
                           {'model': Uniform,
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
-    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+']
-    # algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
-    # exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
+
 
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
     num_processes = min(20, cpu_count())
@@ -153,9 +167,6 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
-    simulations_per_round = 10000
-    split_points = 10000
-    is_interpolation = False
     filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, split_points, is_interpolation,
                             is_evaluation=True)
