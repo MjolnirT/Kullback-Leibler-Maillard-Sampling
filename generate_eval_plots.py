@@ -1,3 +1,4 @@
+import json
 import pickle
 import time
 
@@ -5,6 +6,7 @@ import numpy as np
 
 from Base import Uniform
 from utility import plot_hist_overlapped, message, plot_lines
+from utility_io import get_filename
 
 
 def generate_eval_plots(filename, env_reward, algorithms_name,
@@ -29,7 +31,7 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
                ci=0.95,
                x_label='time step',
                y_label='cumulative reward',
-               title='Cumulative Reward Comparison' + experiment_param,
+               # title='Cumulative Reward Comparison' + experiment_param,
                label=algorithms_name,
                ref_alg=ref_alg,
                add_ci=True,
@@ -44,7 +46,7 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
     plot_hist_overlapped(eval_reward_last,
                          x_label='average reward',
                          y_label='frequency',
-                         title='Cumulative Reward Distribution' + experiment_param,
+                         # title='Cumulative Reward Distribution' + experiment_param,
                          label=algorithms_name,
                          add_density=False,
                          oracle=oracle,
@@ -57,12 +59,12 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
     message(f"MSE: {MSE}", is_print)
     message(f"mean: {mean}", is_print)
 
-    TS_idx = 0
-    KL_MS_idx = 1
-    TS_approx_idx = 5
-    generate_metric(eval_reward_last[:, TS_idx], oracle, is_print, algorithms_name[TS_idx])
-    generate_metric(eval_reward_last[:, KL_MS_idx], oracle, is_print, algorithms_name[KL_MS_idx])
-    generate_metric(eval_reward_last[:, TS_approx_idx], oracle, is_print, algorithms_name[TS_approx_idx])
+    message('-------------------', is_print)
+    for alg_idx in range(n_algorithms):
+        if algorithms_name[alg_idx] in exclude_alg:
+            continue
+        generate_metric(eval_reward_last[:, alg_idx], oracle, is_print, algorithms_name[alg_idx])
+        message('-------------------', is_print)
 
 
 def generate_metric(reward, oracle, is_print, algorithm_name):
@@ -80,23 +82,38 @@ if __name__ == '__main__':
     start_time = time.time()
     is_print = True
 
-    # env_reward = [0.8] + [0.9]
-    env_reward = np.linspace(0.1, 0.9, 9)
-    with open('simulation_T_10000_s_2000_test2_MC_1000_p_20_interpolation_False.pkl', 'rb') as file:
-        records = pickle.load(file)
-    file.close()
+    path = 'config/'
+    filename = path + 'test1_T_10K_MC_100K.json'
+    message(f"Read configuration from {filename}.", is_print)
+    with open(filename, 'r') as f:
+        config = json.load(f)
+    f.close()
+    simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
+    split_points = "NA"
+    is_interpolation = False
 
-    n_simulations = len(records)
-    n_algorithms, T_timespan, n_arms = records[0][2].shape
+    environment = config["environment"]
+    env_reward = environment["reward"]
+    test_case = environment['test case']
+    n_simulations = environment['n_simulations']
+
+    T_timespan = environment["base"]['n_rounds']
+    n_arms = environment["base"]['n_arms']
+
+    n_algorithms = len(config["algorithms"])
+    algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+
     eval_algorithm = {'Uniform':
                           {'model': Uniform,
                            'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
-    algorithms_name = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
 
-    filename = 'evaluation_T_10000_s_200_test3_MC_1000_p_20_interpolation_True.pkl'
+    filename = get_filename(T_timespan, n_simulations, test_case,
+                            simulations_per_round, split_points, is_interpolation,
+                            is_evaluation=True)
+    message(f'Read simulation results from {filename}.', is_print)
     generate_eval_plots(filename, env_reward, algorithms_name,
                         n_simulations, n_arms, n_algorithms, T_timespan,
-                        ref_alg=None, exclude_alg=exclude_alg, is_print=is_print)
+                        ref_alg=algorithms_name, exclude_alg=exclude_alg, is_print=is_print)
     message(f'Time elapsed: {time.time() - start_time:.2f}s', is_print)

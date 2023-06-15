@@ -50,7 +50,7 @@ def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_pro
     return selected_arms, rewards, best_reward, arm_probs
 
 
-def evaluate_single_simulation(sim_idx, counter, lock,
+def evaluate_single_simulation(sim_idx, counter, lock, repeat,
                                records, eval_algorithm, eval_algorithm_name,
                                n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward):
     '''
@@ -62,8 +62,8 @@ def evaluate_single_simulation(sim_idx, counter, lock,
     rewards_all = np.zeros(shape=[n_algorithms, T_timespan])
 
     # construct IPW reward
-    # select_arms, regrets, arm_probs, expect_rewards, time_cost = records
-    select_arms, regrets, arm_probs, expect_rewards = records
+    select_arms, regrets, arm_probs, expect_rewards, time_cost = records
+    # select_arms, regrets, arm_probs, expect_rewards = records
     rewards = np.max(env_reward) - regrets
 
     simulations_per_round = 1000
@@ -98,7 +98,7 @@ def evaluate_single_simulation(sim_idx, counter, lock,
     # After the simulation is done, increment the counter.
     with lock:
         counter.value += 1
-        print(f"Job {sim_idx} done, {counter.value}/{n_simulations} completed.")
+        print(f"Job {sim_idx} done, {counter.value}/{n_simulations*repeat} completed.")
 
     return selected_arm_all, rewards_all
 
@@ -108,11 +108,14 @@ if __name__ == '__main__':
     start_time = time.time()
 
     path = 'config/'
-    filename = path + '100_100_1K.json'
+    filename = path + 'test1_T_10K_MC_100K.json'
     message(f"Read configuration from {filename}.", is_print)
     with open(filename, 'r') as f:
         config = json.load(f)
     f.close()
+    simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
+    split_points = "NA"
+    is_interpolation = False
 
     environment = config["environment"]
     env_reward = environment["reward"]
@@ -125,12 +128,6 @@ if __name__ == '__main__':
     n_algorithms = len(config['algorithms'])
     algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
     exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
-
-    # simulations_per_round = "vary"
-    simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
-    # split_points = "NA"
-    split_points = 100
-    is_interpolation = False
 
     filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, split_points, is_interpolation,
@@ -154,12 +151,13 @@ if __name__ == '__main__':
     counter = manager.Value('i', 0)
     lock = manager.Lock()
 
+    repeat = 1
     # Start the pool with the modified function.
     eval_result = pool.starmap(evaluate_single_simulation,
-                               [(i, counter, lock,
-                                 records[i], eval_algorithm, eval_algorithms_name,
+                               [(i, counter, lock, repeat,
+                                 records[int(i/repeat)], eval_algorithm, eval_algorithms_name,
                                  n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward)
-                                for i in range(n_simulations)])
+                                for i in range(n_simulations*repeat)])
 
     print(f"All {n_simulations} evaluations completed.")
 

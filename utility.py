@@ -122,7 +122,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
             continue
         alg_reward = data[:, idx_alg]
         finite_values = alg_reward[np.isfinite(alg_reward)]
-        bins = np.arange(np.min(finite_values), np.max(finite_values) + 0.1, step=0.01)
+        bins = np.arange(np.min(finite_values), np.max(finite_values) + 0.1, step=0.001)
         plt.hist(x=finite_values, bins=bins, color=cmap(idx_alg), alpha=0.5, label=label[idx_alg])
 
     if oracle is not None:
@@ -159,7 +159,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
-    # plt.xlim(0.50, 1.50)
+    plt.xlim(0.20, 0.25)
     # plt.xlim(0.1, 0.5)
     # plt.ylim(0, 6)
 

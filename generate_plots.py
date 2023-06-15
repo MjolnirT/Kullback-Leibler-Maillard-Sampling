@@ -15,8 +15,9 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
     regrets = np.zeros(shape=[n_simulations, n_algorithms, T_timespan])
     arm_probs = np.zeros(shape=[n_simulations, n_algorithms, T_timespan, n_arms])
     evl_rewards = np.zeros(shape=[n_simulations, n_algorithms])
+    time_cost = np.zeros(shape=[n_simulations, n_algorithms])
     for i, result in enumerate(data):
-        select_arms[i], regrets[i], arm_probs[i], evl_rewards[i] = result
+        select_arms[i], regrets[i], arm_probs[i], evl_rewards[i], time_cost[i] = result
 
     # parameters for plotting
     experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
@@ -82,16 +83,6 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/arm_prob.png',
                exclude_alg=exclude_alg)
 
-    # plot arm probability in histogram
-    # plot_histogram_with_bins(arm_probs_last_round,
-    #                          bin_width=0.1,
-    #                          label=algorithms_name,
-    #                          x_label='arm index',
-    #                          y_label='average arm probability',
-    #                          title='Arm Probability Histogram Comparison' + experiment_param,
-    #                          save_path='./figures/arm_prob_hist.png',
-    #                          exclude_alg=exclude_alg)
-
     # plot the optimal arm probability vs time step
     arm_best = arm_probs[:, :, :, -1]
     plot_lines(arm_best,
@@ -105,12 +96,23 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
                save_path='./figures/arm_best.png',
                exclude_alg=exclude_alg)
 
+    message(f'Average time cost for each algorithm: {np.mean(time_cost, axis=0)}', True)
+
 
 if __name__ == '__main__':
-    filename = 'simulation_T_10000_s_2000_test3_MC_1000_p_20_interpolation_True.pkl.pkl'
+    filename = 'simulation_T_10000_s_200_test4_MC_1000_p_1000_interpolation_False.pkl'
+    # env_reward = [0,2, 0,25]
+    # test_case = 1
+
     env_reward = [0.8] + [0.9]
+    test_case = 2
+
     # env_reward = np.linspace(0.1, 0.9, 9)
+    # test_case = 3
+
+    # env_reward = [0.3, 0.3, 0.99]
+    # test_case = 4
     algorithms_name = ['BernoulliTS', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     ref_alg = ["MS", 'BernoulliTS']
-    exclude_alg = ['KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+    exclude_alg = ['KLMS+JefferysPrior', 'MS+']
     generate_plots(filename, env_reward, algorithms_name, ref_alg, exclude_alg)
