@@ -13,9 +13,9 @@ if __name__ == '__main__':
     print_flag = True
 
     path = 'config/'
-    filename = path + 'test2_T_1K_MC_1K.json'
+    filename = path + 'test5.json'
 
-    simulations_per_round = "1000"
+    simulations_per_round = "50000"
     split_points = "NA"
 
     environment, algorithms = read_algorithms(filename, print_flag=True)
