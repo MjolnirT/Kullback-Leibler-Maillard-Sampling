@@ -108,13 +108,16 @@ if __name__ == '__main__':
     start_time = time.time()
 
     path = 'config/'
-    filename = path + 'test1_T_10K_MC_100K.json'
-    message(f"Read configuration from {filename}.", is_print)
-    with open(filename, 'r') as f:
+    config_name = path + 'test2_T_10K_MC_10K.json'
+    message(f"Read configuration from {config_name}.", is_print)
+    with open(config_name, 'r') as f:
         config = json.load(f)
     f.close()
     simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
-    split_points = "NA"
+
+    # local modification
+    # simulations_per_round = "100K"
+    split_points = "10000"
     is_interpolation = False
 
     environment = config["environment"]
@@ -127,13 +130,14 @@ if __name__ == '__main__':
 
     n_algorithms = len(config['algorithms'])
     algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS+']
 
-    filename = get_filename(T_timespan, n_simulations, test_case,
-                            simulations_per_round, split_points, is_interpolation,
-                            is_simulation=True)
-    message(f'Read simulation results from {filename}.', is_print)
-    with open(filename, 'rb') as file:
+    simulation_data = get_filename(T_timespan, n_simulations, test_case,
+                                   simulations_per_round, split_points, is_interpolation,
+                                   is_simulation=True)
+    simulation_path = 'data/' + simulation_data
+    message(f'Read simulation results from {simulation_path}.', is_print)
+    with open(simulation_path, 'rb') as file:
         records = pickle.load(file)
     file.close()
 

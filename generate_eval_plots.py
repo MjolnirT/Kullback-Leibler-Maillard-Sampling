@@ -83,12 +83,12 @@ if __name__ == '__main__':
     is_print = True
 
     path = 'config/'
-    filename = path + 'test1_T_10K_MC_100K.json'
-    message(f"Read configuration from {filename}.", is_print)
-    with open(filename, 'r') as f:
+    config_file = path + 'test1_T_10K_MC_100K.json'
+    message(f"Read configuration from {config_file}.", is_print)
+    with open(config_file, 'r') as f:
         config = json.load(f)
     f.close()
-    simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
+    simulations_per_round = "100K"
     split_points = "NA"
     is_interpolation = False
 

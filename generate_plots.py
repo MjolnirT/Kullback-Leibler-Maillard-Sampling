@@ -100,8 +100,8 @@ def generate_plots(filename, env_reward, algorithms_name, ref_alg=None, exclude_
 
 
 if __name__ == '__main__':
-    filename = 'simulation_T_10000_s_200_test4_MC_1000_p_1000_interpolation_False.pkl'
-    # env_reward = [0,2, 0,25]
+    filename = 'data/'+'simulation_T_10000_s_2000_test2_MC_10000_p_10000_interpolation_False.pkl'
+    # env_reward = [0.2, 0,25]
     # test_case = 1
 
     env_reward = [0.8] + [0.9]
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     # env_reward = [0.3, 0.3, 0.99]
     # test_case = 4
-    algorithms_name = ['BernoulliTS', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
-    ref_alg = ["MS", 'BernoulliTS']
+    algorithms_name = ['Bernoulli Thompson Sampling', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+    ref_alg = ["MS", 'KL-MS', 'Bernoulli Thompson Sampling']
     exclude_alg = ['KLMS+JefferysPrior', 'MS+']
     generate_plots(filename, env_reward, algorithms_name, ref_alg, exclude_alg)
