@@ -1,14 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 from scipy.stats import gaussian_kde
 from scipy import stats
 from matplotlib.cm import get_cmap
+import textwrap
 
 
 def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
                label=None, ref_alg=None, add_ci=False, save_path=None, exclude_alg=None,
-               font_size=10, figure_size=(10, 6)):
-    plt.figure(figsize=figure_size)
+               font_size=16, figure_size=(8, 6)):
+    fig = plt.figure(figsize=figure_size)
+    ax = fig.gca()
+    ax.tick_params(axis='both', which='major', labelsize=font_size)
     n_simulations, num_algorithm, T_timespan = regrets.shape
     average_regret = regrets.mean(axis=0)
 
@@ -47,7 +52,9 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
 
     ax1.set_xlabel(x_label, fontsize=font_size)
     ax1.set_ylabel(y_label, fontsize=font_size)
-    ax1.set_title(title)
+
+    wrapped_title = "\n".join(textwrap.wrap(title, width=20))  # Adjust the width as needed
+    ax1.set_title(wrapped_title, fontsize=font_size)
     ax1.legend(fontsize=font_size)
 
     if save_path:
@@ -111,6 +118,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
                          save_path=None, add_density=False, add_mean=True, oracle=None, exclude_alg=None,
                          figure_size=(8, 6), font_size=12):
     fig = plt.figure(figsize=figure_size)
+    ax = fig.gca()
+    ax.tick_params(axis='both', which='major', labelsize=font_size)
     n_simulations, num_algorithm = data.shape
 
     # Get a colormap with the number of algorithms
@@ -124,6 +133,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
         finite_values = alg_reward[np.isfinite(alg_reward)]
         bins = np.arange(np.min(finite_values), np.max(finite_values) + 0.1, step=0.01)
         plt.hist(x=finite_values, bins=bins, color=cmap(idx_alg), alpha=0.5, label=label[idx_alg])
+        # set step=0.0001 for test case 1
+        # set step=0.01 for test case 2
 
     if oracle is not None:
         plt.axvline(x=oracle, color='black', linestyle='--', label='Oracle')
@@ -145,8 +156,8 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
             # Evaluate the PDF at a range of x-values
             x = np.linspace(finite_values.min(), finite_values.max(), 100)
             y = dist.pdf(x)
-
-            plt.plot(x, y, color=cmap(idx_alg), label=label[idx_alg])
+            y_freq = y * len(finite_values) * (x[1] - x[0])  # Convert to frequencies
+            plt.plot(x, y_freq, color=cmap(idx_alg), label=label[idx_alg])
 
         # Add a vertical line at the mean of the data
         if add_mean:
@@ -159,8 +170,12 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
+
+    # set x-axis limit for test case 1
     # plt.xlim(0.20, 0.25)
-    # plt.xlim(0.1, 0.5)
+
+    # set x-axis limit for test case 2
+    plt.xlim(0.5, 1.5)
     # plt.ylim(0, 6)
 
     if save_path:

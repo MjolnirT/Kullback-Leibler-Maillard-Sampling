@@ -48,11 +48,12 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
                          y_label='frequency',
                          # title='Cumulative Reward Distribution' + experiment_param,
                          label=algorithms_name,
-                         add_density=False,
+                         add_density=True,
+                         add_mean=False,
                          oracle=oracle,
                          save_path='./figures/eval_reward_hist.png',
                          figure_size=(8, 6),
-                         font_size=12,
+                         font_size=21,
                          exclude_alg=exclude_alg)
     MSE = np.mean((eval_reward_last - oracle) ** 2, axis=0)
     mean = np.mean(eval_reward_last, axis=0)
@@ -83,12 +84,12 @@ if __name__ == '__main__':
     is_print = True
 
     path = 'config/'
-    config_file = path + 'test1_T_10K_MC_100K.json'
+    config_file = path + 'test2_T_10K_MC_1K.json'
     message(f"Read configuration from {config_file}.", is_print)
     with open(config_file, 'r') as f:
         config = json.load(f)
     f.close()
-    simulations_per_round = "100K"
+    simulations_per_round = "1000"
     split_points = "NA"
     is_interpolation = False
 
