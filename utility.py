@@ -173,7 +173,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     # plt.xlim(0.20, 0.25)
 
     # set x-axis limit for test case 2
-    plt.xlim(0.0, 0.5)
+    # plt.xlim(0.0, 0.5)
     # plt.ylim(0, 6)
 
     if save_path:
