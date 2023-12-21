@@ -1,5 +1,6 @@
 import json
 import pickle
+import sys
 from multiprocessing import Pool, cpu_count, Manager
 from generate_eval_plots import generate_eval_plots
 from Base import Uniform
@@ -66,9 +67,7 @@ def evaluate_single_simulation(sim_idx, counter, lock, repeat,
     # select_arms, regrets, arm_probs, expect_rewards = records
     rewards = np.max(env_reward) - regrets
 
-    simulations_per_round = 1000
-
-    padding = 1 / simulations_per_round * 0.5
+    padding = 1 / n_simulations * 0.5
 
     ipw_reward = np.zeros(shape=[n_algorithms, T_timespan, n_arms])
     for alg_idx in range(n_algorithms):
@@ -107,25 +106,19 @@ if __name__ == '__main__':
     is_print = True
     start_time = time.time()
 
-    path = 'config/'
-    config_name = path + 'test2_T_10K_MC_10K.json'
+    config_name = sys.argv[1]
     message(f"Read configuration from {config_name}.", is_print)
     with open(config_name, 'r') as f:
         config = json.load(f)
     f.close()
     simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
 
-    # local modification
-    # simulations_per_round = "100K"
-    split_points = "10000"
-    is_interpolation = False
-
     environment = config["environment"]
     env_reward = environment["reward"]
     test_case = environment['test case']
     n_simulations = environment['n_simulations']
 
-    T_timespan = environment["base"]['n_rounds']
+    T_timespan = environment["base"]['T_timespan']
     n_arms = environment["base"]['n_arms']
 
     n_algorithms = len(config['algorithms'])
@@ -133,7 +126,7 @@ if __name__ == '__main__':
     exclude_alg = ['KL-MS+JefferysPrior', 'MS+']
 
     simulation_data = get_filename(T_timespan, n_simulations, test_case,
-                                   simulations_per_round, split_points, is_interpolation,
+                                   simulations_per_round,
                                    is_simulation=True)
     simulation_path = 'data/' + simulation_data
     message(f'Read simulation results from {simulation_path}.', is_print)
@@ -169,8 +162,7 @@ if __name__ == '__main__':
     pool.join()
 
     filename = get_filename(T_timespan, n_simulations, test_case,
-                            simulations_per_round, split_points, is_interpolation,
-                            is_evaluation=True)
+                            simulations_per_round, is_evaluation=True)
     with open(filename, 'wb') as file:
         pickle.dump(eval_result, file)
     file.close()

@@ -16,8 +16,8 @@ def calculate_prob_arms(means, variance, N_arms):
 
 
 class MS(Base):
-    def __init__(self, n_arms, n_rounds, variance, explore_weight=1):
-        super().__init__(n_arms, n_rounds, explore_weight)
+    def __init__(self, n_arms, T_timespan, variance, explore_weight=1):
+        super().__init__(n_arms, T_timespan, explore_weight)
         self.variance = variance
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
 
@@ -36,8 +36,8 @@ class MS(Base):
 
 
 class MSPlus(Base):
-    def __init__(self, n_arms, n_rounds, B, C, D, variance, explore_weight=1):
-        super().__init__(n_arms, n_rounds, explore_weight)
+    def __init__(self, n_arms, T_timespan, B, C, D, variance, explore_weight=1):
+        super().__init__(n_arms, T_timespan, explore_weight)
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
         self.B = B
         self.C = C

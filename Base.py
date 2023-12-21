@@ -2,14 +2,14 @@ import numpy as np
 
 
 class Base:
-    def __init__(self, n_arms, n_rounds, explore_weight=1):
-        self.T = n_rounds
+    def __init__(self, n_arms, T_timespan, explore_weight=1):
+        self.T = T_timespan
         self.n_arms = n_arms
         self.t = 0
         self.explore_weight = explore_weight
 
         # initialize the records
-        self.rewards = np.zeros(shape=[n_arms, n_rounds])
+        self.rewards = np.zeros(shape=[n_arms, T_timespan])
         self.N_arms = np.zeros(shape=n_arms).astype(int)
         self.means = np.zeros(shape=n_arms)
 

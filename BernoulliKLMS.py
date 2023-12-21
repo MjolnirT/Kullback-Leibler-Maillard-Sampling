@@ -16,8 +16,8 @@ def calculate_prob_arms(means, N_arms):
 
 
 class KLMS(Base):
-    def __init__(self, n_arms, n_rounds, explore_weight=1):
-        super().__init__(n_arms, n_rounds, explore_weight)
+    def __init__(self, n_arms, T_timespan, explore_weight=1):
+        super().__init__(n_arms, T_timespan, explore_weight)
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
 
     def select_arm(self):
@@ -35,8 +35,8 @@ class KLMS(Base):
 
 
 class KLMSJefferysPrior(Base):
-    def __init__(self, n_arms, n_rounds, explore_weight=1):
-        super().__init__(n_arms, n_rounds, explore_weight)
+    def __init__(self, n_arms, T_timespan, explore_weight=1):
+        super().__init__(n_arms, T_timespan, explore_weight)
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
 
         # initialize parameters for the beta distribution

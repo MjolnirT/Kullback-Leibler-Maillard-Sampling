@@ -39,7 +39,7 @@ def simulate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_pro
 
 def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, n_simulations, env_reward):
     first_alg_key = list(algorithms.keys())[0]
-    T_timespan = algorithms[first_alg_key]['params']['n_rounds']
+    T_timespan = algorithms[first_alg_key]['params']['T_timespan']
     n_arms = algorithms[first_alg_key]['params']['n_arms']
 
     selected_arm_all = np.zeros(shape=[len(algorithms), T_timespan])

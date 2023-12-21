@@ -4,8 +4,8 @@ from scipy import stats
 
 
 class BernoulliTS(Base):
-    def __init__(self, n_arms, n_rounds, explore_weight=1, simulation_rounds=1000):
-        super().__init__(n_arms, n_rounds, explore_weight)
+    def __init__(self, n_arms, T_timespan, explore_weight=1, simulation_rounds=1000):
+        super().__init__(n_arms, T_timespan, explore_weight)
 
         # initialize parameters for the beta distribution
         self.prior_alpha = 0.5
@@ -41,9 +41,9 @@ class BernoulliTS(Base):
 
 
 class simuBernoulliTS(BernoulliTS):
-    def __init__(self, n_arms, n_rounds, explore_weight=1,
+    def __init__(self, n_arms, T_timespan, explore_weight=1,
                  simulation_rounds=None, split_points=20):
-        super().__init__(n_arms, n_rounds, explore_weight, simulation_rounds)
+        super().__init__(n_arms, T_timespan, explore_weight, simulation_rounds)
         self.split_points = split_points
 
     def get_arm_prob(self):

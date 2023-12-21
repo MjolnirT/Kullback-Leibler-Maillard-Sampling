@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
 from scipy.stats import gaussian_kde
 from scipy import stats
 from matplotlib.cm import get_cmap
@@ -53,8 +51,8 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     ax1.set_xlabel(x_label, fontsize=font_size)
     ax1.set_ylabel(y_label, fontsize=font_size)
 
-    wrapped_title = "\n".join(textwrap.wrap(title, width=20))  # Adjust the width as needed
-    ax1.set_title(wrapped_title, fontsize=font_size)
+    # wrapped_title = "\n".join(textwrap.wrap(title, width=20))  # Adjust the width as needed
+    ax1.set_title(title, fontsize=font_size)
     ax1.legend(fontsize=font_size)
 
     if save_path:
@@ -175,7 +173,7 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
     # plt.xlim(0.20, 0.25)
 
     # set x-axis limit for test case 2
-    plt.xlim(0.5, 1.5)
+    plt.xlim(0.0, 0.5)
     # plt.ylim(0, 6)
 
     if save_path:

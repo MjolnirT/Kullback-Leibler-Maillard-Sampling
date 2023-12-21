@@ -1,3 +1,4 @@
+import sys
 from generate_plots import generate_plots
 from utility import *
 from simulation import simulate_single_simulation
@@ -11,26 +12,20 @@ if __name__ == '__main__':
     start_time = time.time()
 
     print_flag = True
-
-    path = 'config/'
-    filename = path + 'test5.json'
-
-    simulations_per_round = "50000"
-    split_points = "NA"
-
+    filename = sys.argv[1]
     environment, algorithms = read_algorithms(filename, print_flag=True)
-
+    simulations_per_round = algorithms["BernoulliTS"]["params"]["simulation_rounds"]
     n_simulations = environment['n_simulations']
     env_reward = environment['reward']
     test_case = environment['test case']
-    T_timespan = environment["base"]["n_rounds"]
+    T_timespan = environment["base"]["T_timespan"]
 
     algorithms_name = list(algorithms.keys())
 
     # parallel simulation process
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
     message('--- Start parallel simulation process ---', print_flag=print_flag)
-    num_processes = min(20, cpu_count())
+    num_processes = min(16, cpu_count())
     message(f'Using CPUs: {num_processes}', print_flag=print_flag)
     pool = Pool(processes=num_processes)
 
@@ -50,8 +45,8 @@ if __name__ == '__main__':
     pool.join()
 
     filename = get_filename(T_timespan, n_simulations, test_case,
-                            simulations_per_round, split_points, is_interpolation=False,
-                            is_simulation=True)
+                            simulations_per_round, is_simulation=True)
+    filename = 'data/' + filename
     with open(filename, 'wb') as file:
         pickle.dump(results, file)
     file.close()

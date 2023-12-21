@@ -11,7 +11,6 @@ from utility import message
 # input: the parameters for the simulation
 # output: the filename for the simulation results
 def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
-                 split_points, is_interpolation,
                  is_simulation=False, is_evaluation=False, is_configuration=False):
     filename = None
     if is_simulation:
@@ -24,9 +23,7 @@ def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
     filename = filename + '_T_' + str(T_timespan) + \
                '_s_' + str(n_simulations) + \
                '_test' + str(test_case) + \
-               '_MC_' + str(simulations_per_round) + \
-               '_p_' + str(split_points) + \
-               '_interpolation_' + str(is_interpolation)
+               '_MC_' + str(simulations_per_round)
     if is_configuration:
         filename = filename + '.json'
     else:
