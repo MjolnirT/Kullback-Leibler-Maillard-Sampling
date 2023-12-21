@@ -7,6 +7,9 @@ from SearchOptConfig import SearchOptConfig
 from utility import message
 
 
+# generate the filename for the simulation results
+# input: the parameters for the simulation
+# output: the filename for the simulation results
 def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
                  split_points, is_interpolation,
                  is_simulation=False, is_evaluation=False, is_configuration=False):
@@ -32,6 +35,9 @@ def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
     return filename
 
 
+# parse the algorithm configuration
+# input: one is the algorithm dictionary, the other is the environment dictionary
+# output: a dictionary with the algorithm name as key, and the algorithm class and parameters as value
 def parse_algorithm(alg_dict, environment):
     alg_dict_out = {}
     alg_param = environment["base"].copy()
@@ -61,6 +67,9 @@ def parse_algorithm(alg_dict, environment):
     return alg_dict_out
 
 
+# read the configuration file
+# input: a CONFIG json file
+# output: two dictionaries, one for environment, one for algorithms
 def read_algorithms(filename, print_flag=None):
     message(f'read configuration file: {filename}', print_flag=True)
     algorithms = {}
