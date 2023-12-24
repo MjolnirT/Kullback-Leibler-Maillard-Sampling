@@ -12,23 +12,23 @@ from utility_io import get_filename, read_algorithms
 
 if __name__ == '__main__':
     start_time = time.time()
-
+    device = torch.device('cpu')
     print_flag = True
     filename = sys.argv[1]
-    environment, algorithms = read_algorithms(filename, print_flag=True, device=torch.device('cpu'))
-    simulations_per_round = 0
-    n_simulations = torch.tensor(environment['n_simulations'], dtype=torch.int, device=torch.device('cpu'))
-    env_reward = torch.tensor(environment['reward'], dtype=torch.float, device=torch.device('cpu'))
-    test_case = torch.tensor(environment['test case'], dtype=torch.int, device=torch.device('cpu'))
-    T_timespan = torch.tensor(environment["base"]["T_timespan"], dtype=torch.int, device=torch.device('cpu'))
+    environment, algorithms = read_algorithms(filename, print_flag=True, device=device)
+    simulations_per_round = algorithms["BernoulliTS"]["params"]["simulation_rounds"]
+    n_simulations = torch.tensor(environment['n_simulations'], dtype=torch.int, device=device)
+    env_reward = torch.tensor(environment['reward'], dtype=torch.float, device=device)
+    test_case = torch.tensor(environment['test case'], dtype=torch.int, device=device)
+    T_timespan = torch.tensor(environment["base"]["T_timespan"], dtype=torch.int, device=device)
 
     algorithms_name = list(algorithms.keys())
-    device = torch.device('cpu')
+    
 
     # parallel simulation process
     # Use a maximum of 16 processes or the available CPU threads, whichever is smaller
     message('--- Start parallel simulation process ---', print_flag=print_flag)
-    num_processes = min(1, cpu_count())
+    num_processes = min(16, cpu_count())
     message(f'Using CPUs: {num_processes}', print_flag=print_flag)
     pool = Pool(processes=num_processes)
 
@@ -57,6 +57,7 @@ if __name__ == '__main__':
     # print out execution time
     message(f'Total time elapsed {time.time() - start_time}', print_flag)
     exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
+    env_reward = env_reward.numpy()
     generate_plots(filename, env_reward, algorithms_name,
                    ref_alg='BernoulliTS',
                    exclude_alg=None)

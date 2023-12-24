@@ -50,7 +50,6 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
     time_cost = torch.zeros((len(algorithms)), dtype=torch.float, device=device)
 
     for alg_idx, algorithm in enumerate(algorithms):
-        message(f"Simulation {simulation_idx} running {algorithm}...", print_flag=True)
         start_time = time.time()
         model = algorithms[algorithm]['model'](**algorithms[algorithm]['params'])
         model.set_name(algorithms_name[alg_idx])
@@ -60,7 +59,6 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
                                                                          model,
                                                                          device,
                                                                          output_all_arm_prob=True)
-        message(f"Simulation {simulation_idx} running {algorithm}...done", print_flag=True)
         selected_arm_all[alg_idx] = selected_arms
         regrets_all[alg_idx] = best_reward - rewards
         arm_probs_all[alg_idx] = arm_prob
