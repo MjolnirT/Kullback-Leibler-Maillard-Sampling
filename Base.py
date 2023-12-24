@@ -1,22 +1,24 @@
 import numpy as np
+import torch
 
 
 class Base:
-    def __init__(self, n_arms, T_timespan, explore_weight=1):
-        self.T = T_timespan
-        self.n_arms = n_arms
-        self.t = 0
-        self.explore_weight = explore_weight
+    def __init__(self, n_arms, T_timespan, explore_weight=1, device='cpu'):
+        self.T = torch.tensor(T_timespan, dtype=torch.int, device=device)
+        self.n_arms = torch.tensor(n_arms, dtype=torch.int, device=device)
+        self.t = torch.tensor(0, dtype=torch.int, device=device)
+        self.explore_weight = torch.tensor(explore_weight, dtype=torch.float, device=device)
+
+        self.device = device
 
         # initialize the records
-        self.rewards = np.zeros(shape=[n_arms, T_timespan])
-        self.N_arms = np.zeros(shape=n_arms).astype(int)
-        self.means = np.zeros(shape=n_arms)
+        self.rewards = torch.zeros(n_arms, T_timespan, dtype=torch.float, device=self.device)
+        self.N_arms = torch.zeros(n_arms, dtype=torch.int, device=self.device)
+        self.means = torch.zeros(n_arms, dtype=torch.float, device=self.device)
 
         # initialize the probability of each arm as the uniform distribution
-        self.prob_arm = None
-
-        self.name = None
+        self.prob_arm = torch.NoneType
+        self.name = torch.NoneType
 
     def select_arm(self):
         return
@@ -41,9 +43,10 @@ class Base:
 
 
 class Uniform(Base):
-    def __init__(self, n_arms, n_rounds, explore_weight=1):
-        super().__init__(n_arms, n_rounds, explore_weight)
+    def __init__(self, n_arms, T_timespan, explore_weight=1, device='cpu'):
+        super().__init__(n_arms, T_timespan, explore_weight)
         self.name = 'Uniform'
+        self.prob_arm = torch.full((n_arms,), 1 / n_arms, dtype=torch.float, device=device)
 
     def select_arm(self):
-        return np.random.randint(0, self.n_arms)
+        return torch.randint(0, self.n_arms, (1,)).item()

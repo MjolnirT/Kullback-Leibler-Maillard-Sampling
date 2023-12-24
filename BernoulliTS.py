@@ -1,28 +1,31 @@
 import numpy as np
 from Base import Base
 from scipy import stats
+import torch
 
 
 class BernoulliTS(Base):
-    def __init__(self, n_arms, T_timespan, explore_weight=1, simulation_rounds=1000):
+    def __init__(self, n_arms, T_timespan, device, explore_weight=1, simulation_rounds=1000):
         super().__init__(n_arms, T_timespan, explore_weight)
 
+        self.device = device
         # initialize parameters for the beta distribution
-        self.prior_alpha = 0.5
-        self.prior_beta = 0.5
-        self.alpha = np.full(shape=n_arms, fill_value=0.5)
-        self.beta = np.full(shape=n_arms, fill_value=0.5)
+        self.prior_alpha = torch.tensor(0.5, dtype=torch.float, device=self.device)
+        self.prior_beta = torch.tensor(0.5, dtype=torch.float, device=self.device)
+        self.alpha = torch.full((n_arms,), fill_value=0.5, dtype=torch.float, device=self.device)
+        self.beta = torch.full((n_arms,), fill_value=0.5, dtype=torch.float, device=self.device)
 
         # initialize the cumulative S(r) for each arm
-        self.S = np.zeros(shape=n_arms)
+        self.S = torch.zeros(n_arms, dtype=torch.float, device=self.device)
 
         # initialize the probability of each arm for offline evaluation
-        self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
-        self.simulation_rounds = simulation_rounds
+        self.prob_arm = torch.full((n_arms,), fill_value=1 / n_arms, dtype=torch.float, device=self.device)
+        self.simulation_rounds = torch.tensor(simulation_rounds, dtype=torch.int, device=self.device)
 
     def select_arm(self):
-        theta_samples = [np.random.beta(self.alpha[i], self.beta[i]) for i in range(self.n_arms)]
-        chosen_arm = int(np.argmax(theta_samples))
+        beta_dist = torch.distributions.beta.Beta(self.alpha, self.beta)
+        theta_samples = beta_dist.sample()
+        chosen_arm = torch.argmax(theta_samples).item()
         return chosen_arm
 
     def update(self, chosen_arm, reward):
@@ -33,9 +36,10 @@ class BernoulliTS(Base):
 
     def get_arm_prob(self):
         # running a Monte Carlo simulation to get the probability of each arm
-        theta_samples = np.random.beta(self.alpha, self.beta, size=(self.simulation_rounds, self.n_arms))
-        arm_counts = np.argmax(theta_samples, axis=1)
-        counts = np.bincount(arm_counts, minlength=self.n_arms)
+        beta_dist = torch.distributions.beta.Beta(self.alpha, self.beta)
+        theta_samples = beta_dist.sample((self.simulation_rounds,))
+        arm_counts = torch.argmax(theta_samples, dim=1)
+        counts = torch.bincount(arm_counts, minlength=self.n_arms)
         self.prob_arm = counts / self.simulation_rounds
         return self.prob_arm
 

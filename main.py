@@ -5,6 +5,8 @@ from simulation import simulate_single_simulation
 from multiprocessing import Pool, cpu_count, Manager
 import pickle
 import time
+import torch
+
 
 from utility_io import get_filename, read_algorithms
 
@@ -13,19 +15,20 @@ if __name__ == '__main__':
 
     print_flag = True
     filename = sys.argv[1]
-    environment, algorithms = read_algorithms(filename, print_flag=True)
-    simulations_per_round = algorithms["BernoulliTS"]["params"]["simulation_rounds"]
-    n_simulations = environment['n_simulations']
-    env_reward = environment['reward']
-    test_case = environment['test case']
-    T_timespan = environment["base"]["T_timespan"]
+    environment, algorithms = read_algorithms(filename, print_flag=True, device=torch.device('cpu'))
+    simulations_per_round = 0
+    n_simulations = torch.tensor(environment['n_simulations'], dtype=torch.int, device=torch.device('cpu'))
+    env_reward = torch.tensor(environment['reward'], dtype=torch.float, device=torch.device('cpu'))
+    test_case = torch.tensor(environment['test case'], dtype=torch.int, device=torch.device('cpu'))
+    T_timespan = torch.tensor(environment["base"]["T_timespan"], dtype=torch.int, device=torch.device('cpu'))
 
     algorithms_name = list(algorithms.keys())
+    device = torch.device('cpu')
 
     # parallel simulation process
-    # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
+    # Use a maximum of 16 processes or the available CPU threads, whichever is smaller
     message('--- Start parallel simulation process ---', print_flag=print_flag)
-    num_processes = min(16, cpu_count())
+    num_processes = min(1, cpu_count())
     message(f'Using CPUs: {num_processes}', print_flag=print_flag)
     pool = Pool(processes=num_processes)
 
@@ -36,7 +39,7 @@ if __name__ == '__main__':
 
     # Start the pool with the modified function.
     results = pool.starmap(simulate_single_simulation,
-                           [(i, counter, lock, algorithms, algorithms_name, n_simulations, env_reward) for i
+                           [(i, counter, lock, algorithms, algorithms_name, n_simulations, env_reward, device) for i
                             in range(n_simulations)])
 
     print(f"All {n_simulations} simulations completed.")

@@ -1,9 +1,10 @@
 import numpy as np
 from MS import MSPlus
 from simulation import simulate_one_alg
+import torch
 
 
-def SearchOptConfig(reward, n_arms, n_rounds):
+def SearchOptConfig(reward, n_arms, n_rounds, device):
     B = np.exp(np.linspace(1, 10, 10))
     C = np.exp(-np.linspace(1, 10, 4))
     D = np.exp(-np.linspace(1, 10, 4))
@@ -16,7 +17,7 @@ def SearchOptConfig(reward, n_arms, n_rounds):
         #     print(f'idx: {idx} / {len(configs)}')
 
         model = MSPlus(n_arms, n_rounds, *config, 1 / 4)
-        _, rewards, best_reward, _ = simulate_one_alg(reward, n_arms, n_rounds, model)
+        _, rewards, best_reward, _ = simulate_one_alg(reward, n_arms, n_rounds, model, device)
         regret = np.array(best_reward) - np.array(rewards)
 
         if regret[-1] < best_regret:
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     env_reward = [0.8] + [0.9]
     # reward_probabilities = [0.8] + [0.9]
 
+    device = torch.device("cpu")
     n_arms = len(env_reward)
     n_rounds = 100
-    SearchOptConfig(env_reward, n_arms, n_rounds)
+    SearchOptConfig(env_reward, n_arms, n_rounds, device)

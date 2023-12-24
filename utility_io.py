@@ -1,5 +1,6 @@
 import json
-
+import torch
+from Base import Uniform
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from BernoulliTS import BernoulliTS, simuBernoulliTS
 from MS import MS, MSPlus
@@ -35,10 +36,15 @@ def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
 # parse the algorithm configuration
 # input: one is the algorithm dictionary, the other is the environment dictionary
 # output: a dictionary with the algorithm name as key, and the algorithm class and parameters as value
-def parse_algorithm(alg_dict, environment):
+def parse_algorithm(alg_dict, environment, device):
     alg_dict_out = {}
     alg_param = environment["base"].copy()
     alg_param.update(alg_dict['params'])
+    alg_param['device'] = device
+
+    if alg_dict['model'] == 'Uniform':
+        alg_dict_out[alg_dict['name']] = {'model': Uniform,
+                                          'params': alg_param}
     if alg_dict['model'] == 'BernoulliTS':
         alg_dict_out[alg_dict['name']] = {'model': BernoulliTS,
                                           'params': alg_param}
@@ -52,7 +58,9 @@ def parse_algorithm(alg_dict, environment):
         alg_dict_out[alg_dict['name']] = {'model': MS,
                                           'params': alg_param}
     if alg_dict['model'] == 'MS+':
-        opt_config = SearchOptConfig(environment["reward"], n_arms=alg_param["n_arms"], n_rounds=100)
+        reward = torch.tensor(environment["reward"], dtype=torch.float, device=device)
+        n_arms = torch.tensor(environment["base"]["n_arms"], dtype=torch.int, device=device)
+        opt_config = SearchOptConfig(reward, n_arms, n_rounds=100, device=device)
         alg_param.update({"B": opt_config[0],
                           "C": opt_config[1],
                           "D": opt_config[2]})
@@ -61,13 +69,14 @@ def parse_algorithm(alg_dict, environment):
     if alg_dict['model'] == 'simuBernoulliTS':
         alg_dict_out[alg_dict['name']] = {'model': simuBernoulliTS,
                                           'params': alg_param}
+        
     return alg_dict_out
 
 
 # read the configuration file
 # input: a CONFIG json file
 # output: two dictionaries, one for environment, one for algorithms
-def read_algorithms(filename, print_flag=None):
+def read_algorithms(filename, print_flag=None, device=None):
     message(f'read configuration file: {filename}', print_flag=True)
     algorithms = {}
     with open(filename, 'r') as file:
@@ -79,7 +88,8 @@ def read_algorithms(filename, print_flag=None):
         if key != 'environment':
             for alg_idx, alg in value.items():
                 message(f'{alg_idx}: {alg}', print_flag=print_flag)
-                algorithms.update(parse_algorithm(alg, environment))
+                algorithms.update(parse_algorithm(alg, environment, device))
 
     environment = config["environment"]
     return environment, algorithms
+
