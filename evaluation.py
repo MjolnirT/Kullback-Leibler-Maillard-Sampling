@@ -6,7 +6,7 @@ from generate_eval_plots import generate_eval_plots
 from Base import Uniform
 from utility import *
 import time
-
+import torch
 from utility_io import get_filename
 
 
@@ -106,6 +106,7 @@ if __name__ == '__main__':
     is_print = True
     start_time = time.time()
 
+    device = torch.device('cpu')
     config_name = sys.argv[1]
     message(f"Read configuration from {config_name}.", is_print)
     with open(config_name, 'r') as f:
@@ -136,7 +137,7 @@ if __name__ == '__main__':
 
     eval_algorithm = {'Uniform':
                           {'model': Uniform,
-                           'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
+                           'params': {"n_arms": n_arms, "T_timespan": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
 
     # Use a maximum of 20 processes or the available CPU threads, whichever is smaller

@@ -6,8 +6,6 @@ from multiprocessing import Pool, cpu_count, Manager
 import pickle
 import time
 import torch
-
-
 from utility_io import get_filename, read_algorithms
 
 if __name__ == '__main__':
@@ -28,7 +26,7 @@ if __name__ == '__main__':
     # parallel simulation process
     # Use a maximum of 16 processes or the available CPU threads, whichever is smaller
     message('--- Start parallel simulation process ---', print_flag=print_flag)
-    num_processes = min(16, cpu_count())
+    num_processes = min(25, cpu_count())
     message(f'Using CPUs: {num_processes}', print_flag=print_flag)
     pool = Pool(processes=num_processes)
 
@@ -47,6 +45,10 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
+    T_timespan = T_timespan.cpu().numpy()
+    n_simulations = n_simulations.cpu().numpy()
+    test_case = test_case.cpu().numpy()
+
     filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, is_simulation=True)
     filename = 'data/' + filename
@@ -57,7 +59,7 @@ if __name__ == '__main__':
     # print out execution time
     message(f'Total time elapsed {time.time() - start_time}', print_flag)
     exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+']
-    env_reward = env_reward.numpy()
+    env_reward = env_reward.cpu().numpy()
     generate_plots(filename, env_reward, algorithms_name,
                    ref_alg='BernoulliTS',
                    exclude_alg=None)

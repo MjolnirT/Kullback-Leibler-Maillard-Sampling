@@ -70,6 +70,12 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
         counter.value += 1
         print(f"Job {simulation_idx} done, {counter.value}/{n_simulations} completed.")
 
+    selected_arm_all = selected_arm_all.cpu().numpy()
+    regrets_all = regrets_all.cpu().numpy()
+    arm_probs_all = arm_probs_all.cpu().numpy()
+    expected_rewards_all = expected_rewards_all.cpu().numpy()
+    time_cost = time_cost.cpu().numpy()
+    
     return selected_arm_all, regrets_all, arm_probs_all, expected_rewards_all, time_cost
 
 

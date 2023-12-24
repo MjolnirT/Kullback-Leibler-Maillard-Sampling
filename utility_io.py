@@ -21,10 +21,6 @@ def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
     if is_configuration:
         filename = 'config'
 
-    T_timespan = T_timespan.numpy()
-    n_simulations = n_simulations.numpy()
-    test_case = test_case.numpy()
-    
     filename = filename + '_T_' + str(T_timespan) + \
                '_s_' + str(n_simulations) + \
                '_test' + str(test_case) + \

@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Debug main-cude",
             "type": "python",
@@ -18,6 +19,15 @@
             "type": "python",
             "request": "launch",
             "program": "./main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [".\\config\\config_T_2000_s_50_test2_MC_10000.json"]
+        },
+        {
+            "name": "Python: Debug evaluation",
+            "type": "python",
+            "request": "launch",
+            "program": "./evaluation.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [".\\config\\config_T_2000_s_50_test2_MC_10000.json"]
