@@ -37,6 +37,22 @@ def simulate_one_alg(env_reward, n_arms, n_rounds, algorithm, device, output_all
 
     return selected_arms, rewards, best_reward, arm_probs
 
+def simulate_one_alg_batch(batch_size, batch_id, alg_idx,
+                           env_reward, n_arms, n_rounds, algorithm, device, 
+                           selected_arm_all, regrets_all, arm_probs_all, expected_rewards_all,
+                           output_all_arm_prob=False):
+
+    selected_arm_all[ batch_id * batch_size : (batch_id + 1) * batch_size, alg_idx, :] = torch.ones((batch_size, n_rounds), 
+                                      dtype=torch.int, device=device)
+    regrets_all[ batch_id * batch_size : (batch_id + 1) * batch_size, alg_idx, :] = torch.ones((batch_size, n_rounds), 
+                                dtype=torch.float, device=device)
+    arm_probs_all[ batch_id * batch_size : (batch_id + 1) * batch_size, alg_idx, :, :] = torch.ones((batch_size, n_rounds, n_arms),
+                                dtype=torch.float, device=device)
+    expected_rewards_all[ batch_id * batch_size : (batch_id + 1) * batch_size, alg_idx ] = torch.ones((batch_size),
+                            dtype=torch.float, device=device)
+    
+    return
+
 
 def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algorithms_name, n_simulations, env_reward, device):
     first_alg_key = list(algorithms.keys())[0]
@@ -79,43 +95,49 @@ def simulate_single_simulation(simulation_idx, counter, lock, algorithms, algori
     return selected_arm_all, regrets_all, arm_probs_all, expected_rewards_all, time_cost
 
 
-def simulate_batch_simulation(batch_size, num_batch, environment, algorithms, algorithms_name):
-    batch_size = torch.tensor(batch_size).cuda()
-    num_batch = torch.tensor(num_batch).cuda()
-    environment = dict_to_tensor(environment)
-    algorithms = dict_to_tensor(algorithms)
-    algorithms_name = torch.tensor(algorithms_name).cuda()
-
+def simulate_batch_simulation(batch_size, num_batch, environment, algorithms, algorithms_name, device):
+    # batch_size = torch.tensor(batch_size, dtype=torch.int, device=device)
+    # num_batch = torch.tensor(num_batch, dtype=torch.int, device=device)
+    # environment = dict_to_tensor(environment, device)
+    # algorithms = dict_to_tensor(algorithms)
+    
     n_simulations = environment['n_simulations']
     env_reward = environment['reward']
     T_timespan = environment["base"]["T_timespan"]
     n_arms = environment["base"]["n_arms"]
     
-    selected_arm_all = torch.zeros((n_simulations, len(algorithms), T_timespan)).cuda()
-    regrets_all = torch.zeros((n_simulations, len(algorithms), T_timespan)).cuda()
-    arm_probs_all = torch.zeros((n_simulations, len(algorithms), T_timespan, n_arms)).cude()
-    expected_rewards_all = np.zeros((n_simulations, len(algorithms))).cuda()
+    selected_arm_all = torch.zeros((n_simulations, len(algorithms), T_timespan), 
+                                   dtype=torch.int, device=device)
+    regrets_all = torch.zeros((n_simulations, len(algorithms), T_timespan),
+                              dtype=torch.float, device=device)
+    arm_probs_all = torch.zeros((n_simulations, len(algorithms), T_timespan, n_arms),
+                                dtype=torch.float, device=device)
+    expected_rewards_all = torch.zeros((n_simulations, len(algorithms)),
+                                    dtype=torch.float, device=device)
     
     for batch_id in range(num_batch):
         if batch_id == num_batch - 1:
             batch_size = n_simulations - batch_id * batch_size
         
-        for alg_idx, algorithms in enumerate(algorithms):
-            # simulate_one_alg_batch()
-            break
-        break
-    return
+        for alg_idx, alg in enumerate(algorithms):
+            simulate_one_alg_batch(batch_size, batch_id, alg_idx,
+                                    env_reward, n_arms, T_timespan, alg, device, 
+                                    selected_arm_all, regrets_all, arm_probs_all, expected_rewards_all,
+                                    output_all_arm_prob=True)
+            
+    return selected_arm_all, regrets_all, arm_probs_all, expected_rewards_all
+
 
 
 
 # convert a dictionary to a dictionary with all values as torch tensors
 # input: a dictionary
 # output: a dictionary with all values as torch tensors
-def dict_to_tensor(dict_in):
+def dict_to_tensor(dict_in, device):
     dict_out = {}
     for key, value in dict_in.items():
         if type(value) is dict:
-            dict_out[key] = dict_to_tensor(value)
+            dict_out[key] = dict_to_tensor(value, device)
         else:
-            dict_out[key] = torch.tensor(value).cuda()
+            dict_out[key] = torch.tensor(value, device=device)
     return dict_out
