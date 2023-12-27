@@ -14,7 +14,8 @@ if __name__ == '__main__':
     print_flag = True
     filename = sys.argv[1]
     environment, algorithms = read_algorithms(filename, print_flag=True, device=device)
-    simulations_per_round = algorithms["BernoulliTS"]["params"]["simulation_rounds"]
+    # simulations_per_round = algorithms["BernoulliTS"]["params"]["simulation_rounds"]
+    simulations_per_round = 2000
     n_simulations = torch.tensor(environment['n_simulations'], dtype=torch.int, device=device)
     env_reward = torch.tensor(environment['reward'], dtype=torch.float, device=device)
     test_case = torch.tensor(environment['test case'], dtype=torch.int, device=device)

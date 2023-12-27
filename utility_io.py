@@ -1,6 +1,6 @@
 import json
 import torch
-from Base import Uniform
+from Base import Uniform, BatchUniform
 from BernoulliKLMS import KLMS, KLMSJefferysPrior
 from BernoulliTS import BernoulliTS, simuBernoulliTS
 from MS import MS, MSPlus
@@ -73,10 +73,28 @@ def parse_algorithm(alg_dict, environment, device):
     return alg_dict_out
 
 
+def parse_batch_algorithm(alg_dict, environment, device, batch_size):
+    alg_dict_out = {}
+    alg_param = environment["base"].copy()
+    alg_param.update(alg_dict['params'])
+    alg_param['device'] = device
+    alg_param['batch_size'] = batch_size
+
+    if alg_dict['model'] == 'Uniform':
+        alg_dict_out[alg_dict['name']] = {'model': BatchUniform,
+                                          'params': alg_param}
+    # if alg_dict['model'] == 'BernoulliTS':
+    #     alg_dict_out[alg_dict['name']] = {'model': BernoulliTS,
+    #                                       'params': alg_param}
+        
+    return alg_dict_out
+
+
 # read the configuration file
 # input: a CONFIG json file
 # output: two dictionaries, one for environment, one for algorithms
-def read_algorithms(filename, print_flag=None, device=None):
+def read_algorithms(filename, batch_size=None, print_flag=None, device=None):
+    message(f'Using {device} in regular mode', print_flag)
     message(f'read configuration file: {filename}', print_flag=True)
     algorithms = {}
     with open(filename, 'r') as file:
@@ -85,10 +103,30 @@ def read_algorithms(filename, print_flag=None, device=None):
     environment = config["environment"]
     for key, value in config.items():
         message(f'{key}: {value}', print_flag=print_flag)
-        if key != 'environment':
+        if key == 'algorithms':
             for alg_idx, alg in value.items():
                 message(f'{alg_idx}: {alg}', print_flag=print_flag)
                 algorithms.update(parse_algorithm(alg, environment, device))
+
+    environment = config["environment"]
+    return environment, algorithms
+
+
+def read_batch_algorithms(filename, batch_size, print_flag=None, device=None):
+    message(f'Using {device} in batch mode', print_flag)
+    message(f'read configuration file: {filename}', print_flag=True)
+    algorithms = {}
+    with open(filename, 'r') as file:
+        config_json = file.read()
+    config = json.loads(config_json)
+    environment = config["environment"]
+    for key, value in config.items():
+        message(f'{key}: {value}', print_flag=print_flag)
+        if key == 'algorithms':
+            for alg_idx, alg in value.items():
+                added_alg = parse_batch_algorithm(alg, environment, device, batch_size)
+                algorithms.update(added_alg)
+                message(f'{added_alg}', print_flag=print_flag)
 
     environment = config["environment"]
     return environment, algorithms
