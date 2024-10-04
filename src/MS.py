@@ -1,6 +1,7 @@
 import numpy as np
-from utility_functions.utility import gaussian_KL_divergence
-from model.Base import Base
+from .utility_functions.utility import gaussian_KL_divergence
+from .Base import Base
+from .simulation import simulate_one_alg
 
 
 def calculate_prob_arms(means, variance, N_arms):
@@ -60,3 +61,26 @@ class MSPlus(Base):
             self.prob_arm[self.means.argmax()] = \
                 self.B * (1 + self.C * np.log(1 + np.log(self.t / self.N_arms[self.means.argmax()])))
             self.prob_arm = self.prob_arm / np.sum(self.prob_arm)
+
+def SearchOptConfig(reward, n_arms, n_rounds):
+    B = np.exp(np.linspace(1, 10, 10))
+    C = np.exp(-np.linspace(1, 10, 4))
+    D = np.exp(-np.linspace(1, 10, 4))
+    configs = np.array(np.meshgrid(B, C, D)).T.reshape(-1, 3)
+
+    best_regret = n_rounds * (max(reward) - min(reward))
+    best_config = None
+    for idx, config in enumerate(configs):
+
+        model = MSPlus(n_arms, n_rounds, *config, 1 / 4)
+        _, rewards, best_reward, _ = simulate_one_alg(reward, n_arms, n_rounds, model)
+        regret = np.array(best_reward) - np.array(rewards)
+
+        if regret[-1] < best_regret:
+            best_regret = regret[-1]
+            best_config = config
+
+    print(f'best regret: {best_regret}')
+    print(f'best config: {best_config}')
+
+    return best_config

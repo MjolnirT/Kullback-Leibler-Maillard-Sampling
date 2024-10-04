@@ -1,10 +1,9 @@
 import json
 import os
-from model.BernoulliKLMS import KLMS, KLMSJefferysPrior
-from model.BernoulliTS import BernoulliTS, simuBernoulliTS
-from model.MS import MS, MSPlus
-from SearchOptConfig import SearchOptConfig
-from utility_functions.utility import message
+from ..BernoulliKLMS import KLMS, KLMSJefferysPrior
+from ..BernoulliTS import BernoulliTS, simuBernoulliTS
+from ..MS import MS, MSPlus, SearchOptConfig
+from .utility import message
 
 
 # generate the simulation_filename for the simulation results
@@ -12,22 +11,17 @@ from utility_functions.utility import message
 # output: the simulation_filename for the simulation results
 def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
                  is_simulation=False, is_evaluation=False, is_configuration=False):
-    filename = None
     if is_simulation:
         filename = 'simulation'
-    if is_evaluation:
+    elif is_evaluation:
         filename = 'evaluation'
-    if is_configuration:
+    elif is_configuration:
         filename = 'config'
-
-    filename = filename + '_T_' + str(T_timespan) + \
-               '_s_' + str(n_simulations) + \
-               '_test' + str(test_case) + \
-               '_MC_' + str(simulations_per_round)
-    if is_configuration:
-        filename = filename + '.json'
     else:
-        filename = filename + '.pkl'
+        raise ValueError("Invalid filename type")
+
+    filename += f'_T_{T_timespan}_s_{n_simulations}_test{test_case}_MC_{simulations_per_round}'
+    filename += '.json' if is_configuration else '.pkl'
 
     return filename
 
@@ -39,28 +33,22 @@ def parse_algorithm(alg_dict, environment):
     alg_dict_out = {}
     alg_param = environment["base"].copy()
     alg_param.update(alg_dict['params'])
+
     if alg_dict['model'] == 'BernoulliTS':
-        alg_dict_out[alg_dict['name']] = {'model': BernoulliTS,
-                                          'params': alg_param}
-    if alg_dict['model'] == 'KL-MS':
-        alg_dict_out[alg_dict['name']] = {'model': KLMS,
-                                          'params': alg_param}
-    if alg_dict['model'] == 'KL-MS+JefferysPrior':
-        alg_dict_out[alg_dict['name']] = {'model': KLMSJefferysPrior,
-                                          'params': alg_param}
-    if alg_dict['model'] == 'MS':
-        alg_dict_out[alg_dict['name']] = {'model': MS,
-                                          'params': alg_param}
-    if alg_dict['model'] == 'MS+':
+        alg_dict_out[alg_dict['name']] = {'model': BernoulliTS, 'params': alg_param}
+    elif alg_dict['model'] == 'KL-MS':
+        alg_dict_out[alg_dict['name']] = {'model': KLMS, 'params': alg_param}
+    elif alg_dict['model'] == 'KL-MS+JefferysPrior':
+        alg_dict_out[alg_dict['name']] = {'model': KLMSJefferysPrior, 'params': alg_param}
+    elif alg_dict['model'] == 'MS':
+        alg_dict_out[alg_dict['name']] = {'model': MS, 'params': alg_param}
+    elif alg_dict['model'] == 'MS+':
         opt_config = SearchOptConfig(environment["reward"], n_arms=alg_param["n_arms"], n_rounds=100)
-        alg_param.update({"B": opt_config[0],
-                          "C": opt_config[1],
-                          "D": opt_config[2]})
-        alg_dict_out[alg_dict['name']] = {'model': MSPlus,
-                                          'params': alg_param}
-    if alg_dict['model'] == 'simuBernoulliTS':
-        alg_dict_out[alg_dict['name']] = {'model': simuBernoulliTS,
-                                          'params': alg_param}
+        alg_param.update({"B": opt_config[0], "C": opt_config[1], "D": opt_config[2]})
+        alg_dict_out[alg_dict['name']] = {'model': MSPlus, 'params': alg_param}
+    elif alg_dict['model'] == 'simuBernoulliTS':
+        alg_dict_out[alg_dict['name']] = {'model': simuBernoulliTS, 'params': alg_param}
+
     return alg_dict_out
 
 
@@ -74,6 +62,7 @@ def read_algorithms(filename, print_flag=None):
         config_json = file.read()
     config = json.loads(config_json)
     environment = config["environment"]
+
     for key, value in config.items():
         message(f'{key}: {value}', print_flag=print_flag)
         if key != 'environment':
@@ -81,7 +70,6 @@ def read_algorithms(filename, print_flag=None):
                 message(f'{alg_idx}: {alg}', print_flag=print_flag)
                 algorithms.update(parse_algorithm(alg, environment))
 
-    environment = config["environment"]
     return environment, algorithms
 
 def check_folder_exist(folder_name):

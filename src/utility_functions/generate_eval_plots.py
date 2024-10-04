@@ -3,7 +3,7 @@ import pickle
 import time
 import numpy as np
 import os
-from model.Base import Uniform
+from ..Base import Uniform
 from .utility import plot_hist_overlapped, message, plot_lines
 from .utility_io import get_filename
 

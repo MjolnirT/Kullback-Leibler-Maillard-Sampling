@@ -1,6 +1,6 @@
 import numpy as np
-from utility_functions.utility import binomial_KL_divergence
-from model.Base import Base
+from .utility_functions.utility import binomial_KL_divergence
+from .Base import Base
 
 
 def calculate_prob_arms(means, N_arms):

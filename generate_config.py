@@ -1,57 +1,63 @@
 import json
-
+import os
 from utility_functions.utility import message
-from utility_functions.utility_io import get_filename
+from utility_functions.utility_io import get_filename, check_folder_exist
+from global_config import LOG_FLAG, CONFIG_DIR
+# Configuration parameters
 
-if __name__ == '__main__':
-    print_flag = True
-    # env_reward = [0.2, 0.25]
-    # test_case = 1
+# test case 1: [0.2, 0.25]
+# test case 2: [0.8, 0.9]
+ENV_REWARD = [0.2, 0.25]
+TEST_CASE = 2
 
-    env_reward = [0.8, 0.9]
-    test_case = 2
+N_SIMULATIONS = 50
+T_TIMESPAN = 2000
+INCLUDED_ALG = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'simuBernoulliTS']
+MC_SIMULATION_ROUND = 10000
+VARIANCE = 0.25
 
-    # env_reward = np.linspace(0.1, 0.9, 9)
-    # test_case = 3
+def generate_config():
 
-    # env_reward = [0.8, 0.9]
-    # test_case = 4
+    check_folder_exist(CONFIG_DIR)
+    n_arms = len(ENV_REWARD)
+    config = {
+        "environment": {
+            "reward": ENV_REWARD,
+            "test case": TEST_CASE,
+            "n_simulations": N_SIMULATIONS,
+            "base": {
+                "T_timespan": T_TIMESPAN,
+                "n_arms": n_arms
+            }
+        }
+    }
+    message(f'reward_probabilities: {ENV_REWARD}', print_flag=LOG_FLAG)
 
-    n_simulations = 50
-    T_timespan = 2000
-    n_arms = len(env_reward)
+    algorithms = {
+        idx: {
+            'name': alg,
+            'model': alg,
+            'params': {
+                "MC_simulation_round": MC_SIMULATION_ROUND if alg == 'BernoulliTS' else None,
+                "variance": VARIANCE if alg in ['MS', 'MS+'] else None
+            }
+        }
+        for idx, alg in enumerate(INCLUDED_ALG)
+    }
 
-    config = {"environment": {"reward": env_reward,
-                              "test case": test_case,
-                              "n_simulations": n_simulations,
-                              "base": {"T_timespan": T_timespan,
-                                       "n_arms": n_arms}}}
-    message(f'reward_probabilities: {env_reward}', print_flag=True)
-
-    # set algorithms and their parameters
-    included_alg = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'simuBernoulliTS']
-    MC_simulation_round = 10000
-    variance = float(1 / 4)
-
-    algorithms = {}
-    for idx, alg in enumerate(included_alg):
-        algorithms[idx] = {'name': alg,
-                           'model': alg,
-                           'params': {}}
-        if alg == 'BernoulliTS':
-            algorithms[idx]['params']["simulation_rounds"] = MC_simulation_round
-        if alg == 'MS':
-            algorithms[idx]['params']["variance"] = variance
-        if alg == 'MS+':
-            algorithms[idx]['params']["variance"] = variance
+    # Remove None values from params
+    for alg in algorithms.values():
+        alg['params'] = {k: v for k, v in alg['params'].items() if v is not None}
 
     config["algorithms"] = algorithms
     config_json = json.dumps(config, indent=4)
 
-    filename = get_filename(T_timespan, n_simulations, test_case,
-                            MC_simulation_round, is_configuration=True)
-
-    with open('config/' + filename, 'w') as file:
+    config_filename = get_filename(T_TIMESPAN, N_SIMULATIONS, TEST_CASE, MC_SIMULATION_ROUND, is_configuration=True)
+    config_filepath = os.path.join(CONFIG_DIR, config_filename)
+    with open(config_filepath, 'w') as file:
         file.write(config_json)
 
-    message(f'config file {filename} is generated.', print_flag=True)
+    message(f'config file {config_filename} is generated.', print_flag=LOG_FLAG)
+
+if __name__ == '__main__':
+    generate_config()

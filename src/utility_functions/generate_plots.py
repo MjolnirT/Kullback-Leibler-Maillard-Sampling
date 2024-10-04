@@ -1,6 +1,6 @@
 import pickle
 import os
-from utility_functions.utility import *
+from .utility import *
 
 
 def generate_plots(filename, env_reward, algorithms_name, output_dir, ref_alg=None, exclude_alg=None):

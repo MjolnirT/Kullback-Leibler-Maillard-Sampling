@@ -1,5 +1,5 @@
 import numpy as np
-from model.Base import Base
+from .Base import Base
 from scipy import stats
 
 

@@ -3,10 +3,10 @@ import sys
 import pickle
 import time
 from multiprocessing import Pool, cpu_count, Manager
-from simulation import simulate_single_simulation
-from utility_functions.generate_plots import generate_plots
-from utility_functions.utility import message
-from utility_functions.utility_io import check_folder_exist, get_filename, read_algorithms
+from src.simulation import simulate_single_simulation
+from src.utility_functions.generate_plots import generate_plots
+from src.utility_functions.utility import message
+from src.utility_functions.utility_io import check_folder_exist, get_filename, read_algorithms
 from global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
 

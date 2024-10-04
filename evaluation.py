@@ -4,10 +4,10 @@ import pickle
 import sys
 import time
 from multiprocessing import Pool, cpu_count, Manager
-from model.Base import Uniform
-from utility_functions.generate_eval_plots import generate_eval_plots
-from utility_functions.utility import *
-from utility_functions.utility_io import get_filename
+from src.Base import Uniform
+from src.utility_functions.generate_eval_plots import generate_eval_plots
+from src.utility_functions.utility import *
+from src.utility_functions.utility_io import get_filename
 from global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
 
