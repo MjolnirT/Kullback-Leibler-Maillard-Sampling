@@ -8,18 +8,10 @@ from src.Base import Uniform
 from src.utility_functions.generate_eval_plots import generate_eval_plots
 from src.utility_functions.utility import *
 from src.utility_functions.utility_io import get_filename
-from global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
+from src.global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
 
 def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
-    '''
-    :param env_reward: numpy array with shape [n_rounds, n_arms]
-    :param n_arms: scalar, the number of arms
-    :param n_rounds: scalar, the number of time steps
-    :param algorithm: dictionary
-    :param output_all_arm_prob: boolean
-    :return:
-    '''
     rewards = []
     selected_arms = []
     best_reward = np.max(env_reward) * np.ones(n_rounds)
@@ -39,35 +31,24 @@ def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_pro
         return_reward = env_reward[t][chosen_arm]
         algorithm.update(chosen_arm, return_reward)
 
-        # record the results
         selected_arms.append(chosen_arm)
         rewards.append(return_reward)
 
-        # record the probability of each arm
         if output_all_arm_prob:
             arm_probs[t] = algorithm.get_arm_prob()
 
     arm_probs[-1] = algorithm.get_arm_prob()
-
     return selected_arms, rewards, best_reward, arm_probs
 
 
 def evaluate_single_simulation(sim_idx, counter, lock, repeat,
                                records, eval_algorithm, eval_algorithm_name,
                                n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward):
-    '''
-    :param eval_algorithm: dictionary. Store the algorithm and its corresponding model and parameters needed to be evaluated
-    :param eval_algorithm_name: list of string. Store the name of the algorithm
-    :param env_reward: numpy array with shape [number of algorithm wait to evaluate, T_timespan, n_arms]
-    '''
     selected_arm_all = np.zeros(shape=[n_algorithms, T_timespan])
     rewards_all = np.zeros(shape=[n_algorithms, T_timespan])
 
-    # construct IPW reward
     select_arms, regrets, arm_probs, expect_rewards, time_cost = records
-    # select_arms, regrets, arm_probs, expect_rewards = records
     rewards = np.max(env_reward) - regrets
-
     padding = 1 / n_simulations * 0.5
 
     ipw_reward = np.zeros(shape=[n_algorithms, T_timespan, n_arms])
@@ -94,7 +75,6 @@ def evaluate_single_simulation(sim_idx, counter, lock, repeat,
         selected_arm_all[alg_idx] = selected_arms
         rewards_all[alg_idx] = np.array(rewards)
 
-    # After the simulation is done, increment the counter.
     with lock:
         counter.value += 1
         print(f"Job {sim_idx} done, {counter.value}/{n_simulations*repeat} completed.")
@@ -109,47 +89,35 @@ if __name__ == '__main__':
     message(f"Read configuration from {config_name}.", LOG_FLAG)
     with open(config_name, 'r') as f:
         config = json.load(f)
-    f.close()
-    simulations_per_round = config["algorithms"]["0"]["params"]["simulation_rounds"]
 
+    MC_simulation_round = config["algorithms"]["0"]["params"]["MC_simulation_round"]
     environment = config["environment"]
     env_reward = environment["reward"]
     test_case = environment['test case']
     n_simulations = environment['n_simulations']
-
     T_timespan = environment["base"]['T_timespan']
     n_arms = environment["base"]['n_arms']
-
     n_algorithms = len(config['algorithms'])
     algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS+']
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'simuBernoulliTS', 'MS+']
 
-    simulation_filename = get_filename(T_timespan, n_simulations, test_case,
-                                   simulations_per_round,
-                                   is_simulation=True)
+    simulation_filename = get_filename(T_timespan, n_simulations, test_case, MC_simulation_round, is_simulation=True)
     simulation_filepath = os.path.join(DATA_DIR, simulation_filename)
     message(f'Read simulation results from {simulation_filepath}.', LOG_FLAG)
     with open(simulation_filepath, 'rb') as file:
         records = pickle.load(file)
-    file.close()
 
-    eval_algorithm = {'Uniform':
-                          {'model': Uniform,
-                           'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
+    eval_algorithm = {'Uniform': {'model': Uniform, 'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
     eval_algorithms_name = list(eval_algorithm.keys())[0]
 
-    # Use a maximum of 20 processes or the available CPU threads, whichever is smaller
-    num_processes = min(20, cpu_count())
-    pool = Pool(processes=num_processes)
+    num_processes = int(cpu_count()/2)
+    with Pool(processes=num_processes) as pool:
+        manager = Manager()
+        counter = manager.Value('i', 0)
+        lock = manager.Lock()
 
-    # Create a shared counter and a lock.
-    manager = Manager()
-    counter = manager.Value('i', 0)
-    lock = manager.Lock()
-
-    repeat = 1
-    # Start the pool with the modified function.
-    eval_result = pool.starmap(evaluate_single_simulation,
+        repeat = 1
+        eval_result = pool.starmap(evaluate_single_simulation,
                                [(i, counter, lock, repeat,
                                  records[int(i/repeat)], eval_algorithm, eval_algorithms_name,
                                  n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward)
@@ -157,15 +125,10 @@ if __name__ == '__main__':
 
     print(f"All {n_simulations} evaluations completed.")
 
-    pool.close()
-    pool.join()
-
-    evaluation_filename = get_filename(T_timespan, n_simulations, test_case,
-                            simulations_per_round, is_evaluation=True)
+    evaluation_filename = get_filename(T_timespan, n_simulations, test_case, MC_simulation_round, is_evaluation=True)
     evaluation_filepath = os.path.join(DATA_DIR, evaluation_filename)
     with open(evaluation_filepath, 'wb') as file:
         pickle.dump(eval_result, file)
-    file.close()
 
     message(f"Start evaluating the algorithms", LOG_FLAG)
 
@@ -173,3 +136,4 @@ if __name__ == '__main__':
                         n_simulations, n_arms, n_algorithms, T_timespan,
                         PLOT_DIR,
                         ref_alg=None, exclude_alg=exclude_alg, is_print=LOG_FLAG)
+    

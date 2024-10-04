@@ -6,6 +6,7 @@ import os
 from ..Base import Uniform
 from .utility import plot_hist_overlapped, message, plot_lines
 from .utility_io import get_filename
+from ..global_config import DATA_DIR, PLOT_DIR, CONFIG_DIR, LOG_FLAG
 
 
 def generate_eval_plots(filename, env_reward, algorithms_name,
@@ -81,40 +82,42 @@ def generate_metric(reward, oracle, is_print, algorithm_name):
 
 if __name__ == '__main__':
     start_time = time.time()
-    is_print = True
 
-    path = 'config/'
-    config_file = path + 'test2_T_10K_MC_1K.json'
-    message(f"Read configuration from {config_file}.", is_print)
-    with open(config_file, 'r') as f:
+    config_filename = 'figure1.json'
+    config_filepath = os.path.join(CONFIG_DIR, config_filename)
+    message(f"Read configuration from {config_filepath}.", LOG_FLAG)
+    with open(config_filepath, 'r') as f:
         config = json.load(f)
-    f.close()
-    simulations_per_round = "1000"
-    split_points = "NA"
-    is_interpolation = False
+
+    MC_simulation_round = "1000"
 
     environment = config["environment"]
     env_reward = environment["reward"]
     test_case = environment['test case']
     n_simulations = environment['n_simulations']
 
-    T_timespan = environment["base"]['n_rounds']
+    T_timespan = environment["base"]['T_timespan']
     n_arms = environment["base"]['n_arms']
 
-    n_algorithms = len(config["algorithms"])
-    algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
-    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
+    algorithms = config["algorithms"]
+    n_algorithms = len(algorithms)
+    algorithms_name = [algorithms[key]["name"] for key in algorithms]
+    exclude_alg = ['KL-MS+JefferysPrior', 'MS', 'MS+', 'simuBernoulliTS']
 
-    eval_algorithm = {'Uniform':
-                          {'model': Uniform,
-                           'params': {"n_arms": n_arms, "n_rounds": T_timespan}}}
-    eval_algorithms_name = list(eval_algorithm.keys())[0]
+    eval_algorithm = {
+        'Uniform': {
+            'model': Uniform,
+            'params': {"n_arms": n_arms, "T_timespan": T_timespan}
+        }
+    }
+    eval_algorithms_name = next(iter(eval_algorithm))
 
-    filename = get_filename(T_timespan, n_simulations, test_case,
-                            simulations_per_round, split_points, is_interpolation,
+    evaluation_filename = get_filename(T_timespan, n_simulations, test_case,
+                            MC_simulation_round,
                             is_evaluation=True)
-    message(f'Read simulation results from {filename}.', is_print)
-    generate_eval_plots(filename, env_reward, algorithms_name,
-                        n_simulations, n_arms, n_algorithms, T_timespan,
-                        ref_alg=algorithms_name, exclude_alg=exclude_alg, is_print=is_print)
-    message(f'Time elapsed: {time.time() - start_time:.2f}s', is_print)
+    evaluation_filepath = os.path.join(DATA_DIR, evaluation_filename)
+    message(f'Read simulation results from {evaluation_filepath}.', LOG_FLAG)
+    generate_eval_plots(evaluation_filepath, env_reward, algorithms_name,
+                        n_simulations, n_arms, n_algorithms, T_timespan, PLOT_DIR,
+                        ref_alg=algorithms_name, exclude_alg=exclude_alg, is_print=LOG_FLAG)
+    message(f'Time elapsed: {time.time() - start_time:.2f}s', LOG_FLAG)

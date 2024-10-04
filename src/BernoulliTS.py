@@ -4,7 +4,7 @@ from scipy import stats
 
 
 class BernoulliTS(Base):
-    def __init__(self, n_arms, T_timespan, explore_weight=1, simulation_rounds=1000):
+    def __init__(self, n_arms, T_timespan, explore_weight=1, MC_simulation_round=1000):
         super().__init__(n_arms, T_timespan, explore_weight)
 
         # initialize parameters for the beta distribution
@@ -18,7 +18,7 @@ class BernoulliTS(Base):
 
         # initialize the probability of each arm for offline evaluation
         self.prob_arm = np.full(shape=n_arms, fill_value=1 / n_arms)
-        self.simulation_rounds = simulation_rounds
+        self.MC_simulation_round = MC_simulation_round
 
     def select_arm(self):
         theta_samples = [np.random.beta(self.alpha[i], self.beta[i]) for i in range(self.n_arms)]
@@ -33,17 +33,17 @@ class BernoulliTS(Base):
 
     def get_arm_prob(self):
         # running a Monte Carlo simulation to get the probability of each arm
-        theta_samples = np.random.beta(self.alpha, self.beta, size=(self.simulation_rounds, self.n_arms))
+        theta_samples = np.random.beta(self.alpha, self.beta, size=(self.MC_simulation_round, self.n_arms))
         arm_counts = np.argmax(theta_samples, axis=1)
         counts = np.bincount(arm_counts, minlength=self.n_arms)
-        self.prob_arm = counts / self.simulation_rounds
+        self.prob_arm = counts / self.MC_simulation_round
         return self.prob_arm
 
 
 class simuBernoulliTS(BernoulliTS):
     def __init__(self, n_arms, T_timespan, explore_weight=1,
-                 simulation_rounds=None, split_points=20):
-        super().__init__(n_arms, T_timespan, explore_weight, simulation_rounds)
+                 MC_simulation_round=None, split_points=20):
+        super().__init__(n_arms, T_timespan, explore_weight, MC_simulation_round)
         self.split_points = split_points
 
     def get_arm_prob(self):

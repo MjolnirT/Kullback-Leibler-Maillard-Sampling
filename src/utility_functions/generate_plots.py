@@ -1,6 +1,7 @@
 import pickle
 import os
 from .utility import *
+from ..global_config import PLOT_DIR, DATA_DIR
 
 
 def generate_plots(filename, env_reward, algorithms_name, output_dir, ref_alg=None, exclude_alg=None):
@@ -107,19 +108,15 @@ def generate_plots(filename, env_reward, algorithms_name, output_dir, ref_alg=No
 
 
 if __name__ == '__main__':
-    filename = 'data/'+'simulation_T_10000_s_2000_test2_MC_10000_p_10000_interpolation_False.pkl'
+    simulation_filename = 'simulation_T_10000_s_2000_test2_MC_1000.pkl'
+    simulation_filepath = os.path.join(DATA_DIR, simulation_filename)
     # env_reward = [0.2, 0,25]
     # test_case = 1
 
     env_reward = [0.8] + [0.9]
     test_case = 2
 
-    # env_reward = np.linspace(0.1, 0.9, 9)
-    # test_case = 3
-
-    # env_reward = [0.3, 0.3, 0.99]
-    # test_case = 4
     algorithms_name = ['Bernoulli Thompson Sampling', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     ref_alg = ["MS", 'KL-MS', 'Bernoulli Thompson Sampling']
     exclude_alg = ['KLMS+JefferysPrior', 'MS+']
-    generate_plots(filename, env_reward, algorithms_name, ref_alg, exclude_alg)
+    generate_plots(simulation_filepath, env_reward, algorithms_name, PLOT_DIR, ref_alg, exclude_alg)

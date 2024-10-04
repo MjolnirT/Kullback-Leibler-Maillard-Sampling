@@ -1,19 +1,20 @@
 import json
 import os
-from utility_functions.utility import message
-from utility_functions.utility_io import get_filename, check_folder_exist
-from global_config import LOG_FLAG, CONFIG_DIR
+from src.utility_functions.utility import message
+from src.utility_functions.utility_io import get_filename, check_folder_exist
+from src.global_config import LOG_FLAG, CONFIG_DIR
 # Configuration parameters
 
 # test case 1: [0.2, 0.25]
 # test case 2: [0.8, 0.9]
-ENV_REWARD = [0.2, 0.25]
 TEST_CASE = 2
+ENV_REWARD = [0.2, 0.25] if TEST_CASE == 1 else [0.8, 0.9]
 
-N_SIMULATIONS = 50
-T_TIMESPAN = 2000
+
+N_SIMULATIONS = 2000
+T_TIMESPAN = 10000
 INCLUDED_ALG = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'simuBernoulliTS']
-MC_SIMULATION_ROUND = 10000
+MC_SIMULATION_ROUND = 1000
 VARIANCE = 0.25
 
 def generate_config():

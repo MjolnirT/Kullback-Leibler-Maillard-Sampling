@@ -7,7 +7,7 @@ from src.simulation import simulate_single_simulation
 from src.utility_functions.generate_plots import generate_plots
 from src.utility_functions.utility import message
 from src.utility_functions.utility_io import check_folder_exist, get_filename, read_algorithms
-from global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
+from src.global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     # Read the config file
     config_filepath = sys.argv[1]
     environment, algorithms = read_algorithms(config_filepath, print_flag=LOG_FLAG)
-    simulations_per_round = algorithms["BernoulliTS"]["params"]["simulation_rounds"]
+    MC_simulation_round = algorithms["BernoulliTS"]["params"]["MC_simulation_round"]
     n_simulations = environment['n_simulations']
     env_reward = environment['reward']
     test_case = environment['test case']
@@ -27,9 +27,8 @@ def main():
 
     # Parallel simulation process
     message('--- Start parallel simulation process ---', print_flag=LOG_FLAG)
-    num_processes = min(16, cpu_count())
+    num_processes = int(cpu_count()/2)
     message(f'Using CPUs: {num_processes}', print_flag=LOG_FLAG)
-    
     with Pool(processes=num_processes) as pool:
         # Create a shared counter and a lock
         manager = Manager()
@@ -44,19 +43,20 @@ def main():
 
     # Save the results
     simulation_filepath = os.path.join(DATA_DIR, get_filename(T_timespan, n_simulations, test_case,
-                                                              simulations_per_round, is_simulation=True))
+                                                              MC_simulation_round, is_simulation=True))
     with open(simulation_filepath, 'wb') as file:
         pickle.dump(results, file)
 
     # Print out execution time
     elapsed_time = time.time() - start_time
     message(f'Total time elapsed {elapsed_time}', LOG_FLAG)
+    exclude_alg = ['KLMS+JefferysPrior', 'MS+']
     generate_plots(simulation_filepath,
                    env_reward,
                    algorithms_name,
                    PLOT_DIR,
                    ref_alg='BernoulliTS',
-                   exclude_alg=None)
+                   exclude_alg=exclude_alg)
     message(f'time elapsed {elapsed_time}', LOG_FLAG)
     message(f'Simulation file path: {simulation_filepath}', LOG_FLAG)
 
