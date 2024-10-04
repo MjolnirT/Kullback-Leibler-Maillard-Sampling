@@ -1,8 +1,7 @@
 import json
 
-from SearchOptConfig import SearchOptConfig
-from utility import message
-from utility_io import get_filename
+from utility_functions.utility import message
+from utility_functions.utility_io import get_filename
 
 if __name__ == '__main__':
     print_flag = True

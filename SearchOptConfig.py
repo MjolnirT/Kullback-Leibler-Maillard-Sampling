@@ -1,5 +1,5 @@
 import numpy as np
-from MS import MSPlus
+from model.MS import MSPlus
 from simulation import simulate_one_alg
 
 
@@ -12,8 +12,6 @@ def SearchOptConfig(reward, n_arms, n_rounds):
     best_regret = n_rounds * (max(reward) - min(reward))
     best_config = None
     for idx, config in enumerate(configs):
-        # if idx % 100 == 0:
-        #     print(f'idx: {idx} / {len(configs)}')
 
         model = MSPlus(n_arms, n_rounds, *config, 1 / 4)
         _, rewards, best_reward, _ = simulate_one_alg(reward, n_arms, n_rounds, model)

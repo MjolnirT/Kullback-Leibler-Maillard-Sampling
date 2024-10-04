@@ -1,15 +1,15 @@
 import json
-
-from BernoulliKLMS import KLMS, KLMSJefferysPrior
-from BernoulliTS import BernoulliTS, simuBernoulliTS
-from MS import MS, MSPlus
+import os
+from model.BernoulliKLMS import KLMS, KLMSJefferysPrior
+from model.BernoulliTS import BernoulliTS, simuBernoulliTS
+from model.MS import MS, MSPlus
 from SearchOptConfig import SearchOptConfig
-from utility import message
+from utility_functions.utility import message
 
 
-# generate the filename for the simulation results
+# generate the simulation_filename for the simulation results
 # input: the parameters for the simulation
-# output: the filename for the simulation results
+# output: the simulation_filename for the simulation results
 def get_filename(T_timespan, n_simulations, test_case, simulations_per_round,
                  is_simulation=False, is_evaluation=False, is_configuration=False):
     filename = None
@@ -83,3 +83,11 @@ def read_algorithms(filename, print_flag=None):
 
     environment = config["environment"]
     return environment, algorithms
+
+def check_folder_exist(folder_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+        message(f'Folder {folder_name} created.')
+    else:
+        message(f'Folder {folder_name} already exists.')
+    return folder_name

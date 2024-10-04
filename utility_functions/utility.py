@@ -3,7 +3,6 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from scipy import stats
 from matplotlib.cm import get_cmap
-import textwrap
 
 
 def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
@@ -51,15 +50,11 @@ def plot_lines(regrets, ci=0.95, x_label=None, y_label=None, title=None,
     ax1.set_xlabel(x_label, fontsize=font_size)
     ax1.set_ylabel(y_label, fontsize=font_size)
 
-    # wrapped_title = "\n".join(textwrap.wrap(title, width=20))  # Adjust the width as needed
     ax1.set_title(title, fontsize=font_size)
     ax1.legend(fontsize=font_size)
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
-
-    plt.show()
-
 
 def plot_histogram_with_bins(arm_probs, bin_width=0.2, x_label=None, y_label=None,
                              label=None, title=None, confidence=0.95,
@@ -108,9 +103,6 @@ def plot_histogram_with_bins(arm_probs, bin_width=0.2, x_label=None, y_label=Non
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
-
-    plt.show()
-
 
 def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=None,
                          save_path=None, add_density=False, add_mean=True, oracle=None, exclude_alg=None,
@@ -178,9 +170,6 @@ def plot_hist_overlapped(data, title=None, label=None, x_label=None, y_label=Non
 
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
-
-    plt.show()
-
 
 def binomial_KL_divergence(a, b):
     if b == 1:

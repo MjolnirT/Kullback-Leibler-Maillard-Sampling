@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 
-from Base import Uniform
+from model.Base import Uniform
 from utility import plot_hist_overlapped, message, plot_lines
 from utility_io import get_filename
 

@@ -1,13 +1,13 @@
 import json
 import pickle
 import sys
-from multiprocessing import Pool, cpu_count, Manager
-from generate_eval_plots import generate_eval_plots
-from Base import Uniform
-from utility import *
 import time
 
-from utility_io import get_filename
+from multiprocessing import Pool, cpu_count, Manager
+from utility_functions.generate_eval_plots import generate_eval_plots
+from model.Base import Uniform
+from utility_functions.utility import *
+from utility_functions.utility_io import get_filename
 
 
 def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
