@@ -1,13 +1,14 @@
 import json
+import os.path
 import pickle
 import sys
 import time
-
 from multiprocessing import Pool, cpu_count, Manager
-from utility_functions.generate_eval_plots import generate_eval_plots
 from model.Base import Uniform
+from utility_functions.generate_eval_plots import generate_eval_plots
 from utility_functions.utility import *
 from utility_functions.utility_io import get_filename
+from global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
 
 def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_prob=False):
@@ -82,7 +83,6 @@ def evaluate_single_simulation(sim_idx, counter, lock, repeat,
                 rewards[alg_idx, t] / arm_prob
 
     for alg_idx in range(n_algorithms):
-        # model = algorithm(*args)
         model = eval_algorithm[eval_algorithm_name]['model'](**eval_algorithm[eval_algorithm_name]['params'])
         model.set_name(eval_algorithm_name)
         selected_arms, rewards, _, _ = evaluate_one_alg(ipw_reward[alg_idx],
@@ -103,11 +103,10 @@ def evaluate_single_simulation(sim_idx, counter, lock, repeat,
 
 
 if __name__ == '__main__':
-    is_print = True
     start_time = time.time()
 
     config_name = sys.argv[1]
-    message(f"Read configuration from {config_name}.", is_print)
+    message(f"Read configuration from {config_name}.", LOG_FLAG)
     with open(config_name, 'r') as f:
         config = json.load(f)
     f.close()
@@ -125,12 +124,12 @@ if __name__ == '__main__':
     algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
     exclude_alg = ['KL-MS+JefferysPrior', 'MS+']
 
-    simulation_data = get_filename(T_timespan, n_simulations, test_case,
+    simulation_filename = get_filename(T_timespan, n_simulations, test_case,
                                    simulations_per_round,
                                    is_simulation=True)
-    simulation_path = 'data/' + simulation_data
-    message(f'Read simulation results from {simulation_path}.', is_print)
-    with open(simulation_path, 'rb') as file:
+    simulation_filepath = os.path.join(DATA_DIR, simulation_filename)
+    message(f'Read simulation results from {simulation_filepath}.', LOG_FLAG)
+    with open(simulation_filepath, 'rb') as file:
         records = pickle.load(file)
     file.close()
 
@@ -161,14 +160,16 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
-    filename = get_filename(T_timespan, n_simulations, test_case,
+    evaluation_filename = get_filename(T_timespan, n_simulations, test_case,
                             simulations_per_round, is_evaluation=True)
-    with open(filename, 'wb') as file:
+    evaluation_filepath = os.path.join(DATA_DIR, evaluation_filename)
+    with open(evaluation_filepath, 'wb') as file:
         pickle.dump(eval_result, file)
     file.close()
 
-    message(f"Start evaluating the algorithms", is_print)
+    message(f"Start evaluating the algorithms", LOG_FLAG)
 
-    generate_eval_plots(filename, env_reward, algorithms_name,
+    generate_eval_plots(evaluation_filepath, env_reward, algorithms_name,
                         n_simulations, n_arms, n_algorithms, T_timespan,
-                        ref_alg=None, exclude_alg=exclude_alg, is_print=True)
+                        PLOT_DIR,
+                        ref_alg=None, exclude_alg=exclude_alg, is_print=LOG_FLAG)

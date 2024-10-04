@@ -1,16 +1,16 @@
 import json
 import pickle
 import time
-
 import numpy as np
-
+import os
 from model.Base import Uniform
-from utility import plot_hist_overlapped, message, plot_lines
-from utility_io import get_filename
+from .utility import plot_hist_overlapped, message, plot_lines
+from .utility_io import get_filename
 
 
 def generate_eval_plots(filename, env_reward, algorithms_name,
                         n_simulations, n_arms, n_algorithms, T_timespan,
+                        output_dir,
                         ref_alg=None, exclude_alg=None, is_print=True):
     with open(filename, 'rb') as file:
         eval_result = pickle.load(file)
@@ -22,36 +22,36 @@ def generate_eval_plots(filename, env_reward, algorithms_name,
         select_arms[i], eval_reward[i] = eval_result[i]
     eval_reward = np.cumsum(eval_reward, axis=2)
 
-    # oracle = (np.ones(shape=n_arms) / n_arms).dot(env_reward) * T_timespan
     oracle = (np.ones(shape=n_arms) / n_arms).dot(env_reward)
 
     message(f"Start plotting", is_print)
     experiment_param = ' | mu=' + str(env_reward) + ' | simulations=' + str(n_simulations)
+    plot_filepath = os.path.join(output_dir, 'eval_reward_line.png')
     plot_lines(eval_reward,
                ci=0.95,
                x_label='time step',
                y_label='cumulative reward',
-               # title='Cumulative Reward Comparison' + experiment_param,
+               title='Cumulative Reward Comparison' + experiment_param,
                label=algorithms_name,
                ref_alg=ref_alg,
                add_ci=True,
-               save_path='./figures/eval_reward_line.png',
+               save_path=plot_filepath,
                figure_size=(8, 6),
                font_size=18,
                exclude_alg=exclude_alg)
 
     # eval_reward_last = eval_reward[:, :, -1]
     eval_reward_last = eval_reward[:, :, -1] / T_timespan
-
+    plot_filepath = os.path.join(output_dir, 'eval_reward_hist.png')
     plot_hist_overlapped(eval_reward_last,
                          x_label='average reward',
                          y_label='frequency',
-                         # title='Cumulative Reward Distribution' + experiment_param,
+                         title='Average Reward Distribution' + experiment_param,
                          label=algorithms_name,
                          add_density=True,
                          add_mean=False,
                          oracle=oracle,
-                         save_path='./figures/eval_reward_hist.png',
+                         save_path=plot_filepath,
                          figure_size=(8, 6),
                          font_size=21,
                          exclude_alg=exclude_alg)
