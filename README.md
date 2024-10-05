@@ -11,8 +11,8 @@ We study K-armed bandit problems where the reward distributions of the arms are 
 To run the code, ensure you have Python installed. You can clone this repository and install the necessary dependencies using:
 
 ```bash
-git clone https://github.com/yourusername/kl-maillard-sampling.git
-cd kl-maillard-sampling
+git clone https://github.com/MjolnirT/Kullback-Leibler-Maillard-Sampling
+cd Kullback-Leibler-Maillard-Sampling
 pip install -r requirements.txt
 ```
 
