@@ -1,6 +1,5 @@
 .idea
 *.pyc
 *.xml
-figures/
 data/
 .vscode/
