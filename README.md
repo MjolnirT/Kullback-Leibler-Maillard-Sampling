@@ -35,7 +35,7 @@ The experiment consists of two main steps:
 3. (Option) **Generating figures using obtained simulation and evaluation results**: Although we have already obtained desired cumulative and average regret plots by executing the above two steps, we can utilize obtained data to generate those plots without re-running the whole experiments.
     ```bash
     # navigate to the source folder
-    cd kl-maillard-sampling
+    cd Kullback-Leibler-Maillard-Sampling
     # generating simulation plots
     python -m src.utility_functions.generate_plots <path-to-config>
     # generating offline evaluation plots
@@ -45,7 +45,7 @@ The experiment consists of two main steps:
 
 To generate Figure 1 in the main body of paper (Page 2), we should choose figure file `figure1_main.json` in the folder `config` and run following commands:
 ```bash
-cd kl-maillard-sampling
+cd Kullback-Leibler-Maillard-Sampling
 python running_simulations.py ./config/figure1_main.json
 python evaluation.py ./config/figure1_main.json
 ```
