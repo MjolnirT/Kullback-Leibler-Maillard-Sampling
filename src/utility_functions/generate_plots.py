@@ -1,7 +1,10 @@
 import pickle
 import os
+import sys
+import json
 from .utility import *
 from ..global_config import PLOT_DIR, DATA_DIR
+from .utility_io import get_filename
 
 
 def generate_plots(filename, env_reward, algorithms_name, output_dir, ref_alg=None, exclude_alg=None):
@@ -108,13 +111,20 @@ def generate_plots(filename, env_reward, algorithms_name, output_dir, ref_alg=No
 
 
 if __name__ == '__main__':
-    simulation_filename = 'simulation_T_10000_s_2000_test2_MC_1000.pkl'
-    simulation_filepath = os.path.join(DATA_DIR, simulation_filename)
-    # env_reward = [0.2, 0,25]
-    # test_case = 1
+    config_filepath = sys.argv[1]
+    with open(config_filepath, 'r') as f:
+        config = json.load(f)
+    env_reward = config["environment"]["reward"]
+    test_case = config["environment"]["test case"]
+    T_timespan = config["environment"]["base"]["T_timespan"]
+    n_arms = config["environment"]["base"]["n_arms"]
+    n_simulations = config["environment"]["n_simulations"]
+    algorithms_name = [config["algorithms"][key]["name"] for key in config["algorithms"]]
 
-    env_reward = [0.8] + [0.9]
-    test_case = 2
+    MC_simulation_round = find_mc_simulation_round(config)
+
+    simulation_filename = get_filename(T_timespan, n_simulations, test_case, MC_simulation_round, is_simulation=True)
+    simulation_filepath = os.path.join(DATA_DIR, simulation_filename)
 
     algorithms_name = ['Bernoulli Thompson Sampling', 'KL-MS', 'KLMS+JefferysPrior', 'MS', 'MS+', 'BernoulliTS+RiemannApprox']
     ref_alg = ["MS", 'KL-MS', 'Bernoulli Thompson Sampling']

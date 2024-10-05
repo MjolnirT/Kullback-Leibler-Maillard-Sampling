@@ -1,0 +1,52 @@
+{
+    "environment": {
+        "reward": [
+            0.2,
+            0.25
+        ],
+        "test case": 1,
+        "n_simulations": 2000,
+        "base": {
+            "T_timespan": 10000,
+            "n_arms": 2
+        }
+    },
+    "algorithms": {
+        "0": {
+            "name": "BernoulliTS",
+            "model": "BernoulliTS",
+            "params": {
+                "MC_simulation_round": 10000
+            }
+        },
+        "1": {
+            "name": "KL-MS",
+            "model": "KL-MS",
+            "params": {}
+        },
+        "2": {
+            "name": "KL-MS+JefferysPrior",
+            "model": "KL-MS+JefferysPrior",
+            "params": {}
+        },
+        "3": {
+            "name": "MS",
+            "model": "MS",
+            "params": {
+                "variance": 0.25
+            }
+        },
+        "4": {
+            "name": "MS+",
+            "model": "MS+",
+            "params": {
+                "variance": 0.25
+            }
+        },
+        "5": {
+            "name": "simuBernoulliTS",
+            "model": "simuBernoulliTS",
+            "params": {}
+        }
+    }
+}

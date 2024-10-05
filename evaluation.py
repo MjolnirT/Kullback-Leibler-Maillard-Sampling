@@ -43,13 +43,13 @@ def evaluate_one_alg(env_reward, n_arms, n_rounds, algorithm, output_all_arm_pro
 
 def evaluate_single_simulation(sim_idx, counter, lock, repeat,
                                records, eval_algorithm, eval_algorithm_name,
-                               n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward):
+                               n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward, MC_simulation_round):
     selected_arm_all = np.zeros(shape=[n_algorithms, T_timespan])
     rewards_all = np.zeros(shape=[n_algorithms, T_timespan])
 
     select_arms, regrets, arm_probs, expect_rewards, time_cost = records
     rewards = np.max(env_reward) - regrets
-    padding = 1 / n_simulations * 0.5
+    padding = 1 / MC_simulation_round * 0.5
 
     ipw_reward = np.zeros(shape=[n_algorithms, T_timespan, n_arms])
     for alg_idx in range(n_algorithms):
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     with open(config_name, 'r') as f:
         config = json.load(f)
 
-    MC_simulation_round = config["algorithms"]["0"]["params"]["MC_simulation_round"]
+    MC_simulation_round = find_mc_simulation_round(config)
     environment = config["environment"]
     env_reward = environment["reward"]
     test_case = environment['test case']
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         eval_result = pool.starmap(evaluate_single_simulation,
                                [(i, counter, lock, repeat,
                                  records[int(i/repeat)], eval_algorithm, eval_algorithms_name,
-                                 n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward)
+                                 n_simulations, n_algorithms, algorithms_name, T_timespan, n_arms, env_reward, MC_simulation_round)
                                 for i in range(n_simulations*repeat)])
 
     print(f"All {n_simulations} evaluations completed.")

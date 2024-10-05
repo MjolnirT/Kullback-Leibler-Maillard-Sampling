@@ -3,10 +3,11 @@ import pickle
 import time
 import numpy as np
 import os
+import sys
 from ..Base import Uniform
-from .utility import plot_hist_overlapped, message, plot_lines
+from .utility import plot_hist_overlapped, message, plot_lines, find_mc_simulation_round
 from .utility_io import get_filename
-from ..global_config import DATA_DIR, PLOT_DIR, CONFIG_DIR, LOG_FLAG
+from ..global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
 
 def generate_eval_plots(filename, env_reward, algorithms_name,
@@ -83,13 +84,12 @@ def generate_metric(reward, oracle, is_print, algorithm_name):
 if __name__ == '__main__':
     start_time = time.time()
 
-    config_filename = 'figure1.json'
-    config_filepath = os.path.join(CONFIG_DIR, config_filename)
+    config_filepath = sys.argv[1]
     message(f"Read configuration from {config_filepath}.", LOG_FLAG)
     with open(config_filepath, 'r') as f:
         config = json.load(f)
 
-    MC_simulation_round = "1000"
+    MC_simulation_round = find_mc_simulation_round(config)
 
     environment = config["environment"]
     env_reward = environment["reward"]

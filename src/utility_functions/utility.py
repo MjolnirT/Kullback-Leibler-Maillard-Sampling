@@ -184,16 +184,13 @@ def binomial_KL_divergence(a, b):
     kl = a * np.log(a / b) + (1 - a) * np.log((1 - a) / (1 - b))
     return kl
 
-
 def gaussian_KL_divergence(mu1, var1, mu2, var2):
     kl = np.log(np.sqrt(var2) / np.sqrt(var1)) + (var1 + (mu1 - mu2) ** 2) / (2 * var2) - 0.5
     return kl
 
-
 def message(print_string, print_flag=False):
     if print_flag:
         print(print_string)
-
 
 def log_remove_inf(vec, is_interpolation=False):
     with np.errstate(divide='ignore'):
@@ -205,3 +202,11 @@ def log_remove_inf(vec, is_interpolation=False):
             ~np.isfinite(log_vec)) + 1) * log_step
 
     return log_vec
+
+def find_mc_simulation_round(config):
+    """Finds the MC_simulation_round parameter from the configuration."""
+    for key, algorithm in config["algorithms"].items():
+        if "MC_simulation_round" in algorithm["params"]:
+            return algorithm["params"]["MC_simulation_round"]
+    raise ValueError("No algorithm with 'MC_simulation_round' found in the configuration.")
+    

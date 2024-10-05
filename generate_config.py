@@ -14,7 +14,7 @@ ENV_REWARD = [0.2, 0.25] if TEST_CASE == 1 else [0.8, 0.9]
 N_SIMULATIONS = 2000
 T_TIMESPAN = 10000
 INCLUDED_ALG = ['BernoulliTS', 'KL-MS', 'KL-MS+JefferysPrior', 'MS', 'MS+', 'simuBernoulliTS']
-MC_SIMULATION_ROUND = 1000
+MC_SIMULATION_ROUND = 100000
 VARIANCE = 0.25
 
 def generate_config():

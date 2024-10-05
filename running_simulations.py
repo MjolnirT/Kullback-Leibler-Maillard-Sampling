@@ -2,10 +2,11 @@ import os
 import sys
 import pickle
 import time
+import json
 from multiprocessing import Pool, cpu_count, Manager
 from src.simulation import simulate_single_simulation
 from src.utility_functions.generate_plots import generate_plots
-from src.utility_functions.utility import message
+from src.utility_functions.utility import message, find_mc_simulation_round
 from src.utility_functions.utility_io import check_folder_exist, get_filename, read_algorithms
 from src.global_config import DATA_DIR, PLOT_DIR, LOG_FLAG
 
@@ -16,13 +17,15 @@ def main():
     check_folder_exist(PLOT_DIR)
     # Read the config file
     config_filepath = sys.argv[1]
+    with open(config_filepath, 'r') as f:
+        config = json.load(f)
+    
     environment, algorithms = read_algorithms(config_filepath, print_flag=LOG_FLAG)
-    MC_simulation_round = algorithms["BernoulliTS"]["params"]["MC_simulation_round"]
     n_simulations = environment['n_simulations']
     env_reward = environment['reward']
     test_case = environment['test case']
     T_timespan = environment["base"]["T_timespan"]
-
+    MC_simulation_round = find_mc_simulation_round(config)
     algorithms_name = list(algorithms.keys())
 
     # Parallel simulation process
